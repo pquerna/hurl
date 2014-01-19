@@ -15,26 +15,11 @@
  *
  */
 
-package ui
+package http
 
-import (
-	"fmt"
-	"github.com/pquerna/hurl/smash/http"
-	"github.com/spf13/cobra"
-)
-
-func ConsoleCommands() []*cobra.Command {
-	rv := []*cobra.Command{
-		&cobra.Command{
-			Use:   "version",
-			Short: "Print the version number of hurl",
-			Long:  `All software has versions. This is hurl's`,
-			Run: func(cmd *cobra.Command, args []string) {
-				fmt.Println("0.1.0-dev")
-			},
-		},
-		http.ConsoleCommand(),
-	}
-
-	return rv
+type Config struct {
+	method      string
+	url         string
+	keepalive   bool
+	numRequests int
 }

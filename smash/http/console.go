@@ -15,26 +15,34 @@
  *
  */
 
-package ui
+package http
 
 import (
-	"fmt"
-	"github.com/pquerna/hurl/smash/http"
 	"github.com/spf13/cobra"
 )
 
-func ConsoleCommands() []*cobra.Command {
-	rv := []*cobra.Command{
-		&cobra.Command{
-			Use:   "version",
-			Short: "Print the version number of hurl",
-			Long:  `All software has versions. This is hurl's`,
-			Run: func(cmd *cobra.Command, args []string) {
-				fmt.Println("0.1.0-dev")
-			},
-		},
-		http.ConsoleCommand(),
+var g_config = Config{}
+
+func ConsoleCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "smash",
+		Short: "Send basic HTTP or HTTPS traffic to a server.",
+		Long:  ``,
+		Run:   ConsoleRun,
 	}
 
-	return rv
+	flags := cmd.Flags()
+	flags.StringVarP(&g_config.method, "method", "m", "GET", "HTTP method to use.")
+	flags.IntVarP(&g_config.numRequests, "numrequests", "n", 1000, "Number of requests")
+	flags.BoolVarP(&g_config.keepalive, "keepalive", "k", true, "Enable HTTP Keepalive")
+
+	return cmd
+}
+
+func ConsoleRun(cmd *cobra.Command, args []string) {
+	// Assemble Smashers.
+	// Distribute load.
+	// RUN IT
+	// Get Reports.
+	// Render Reports.
 }
