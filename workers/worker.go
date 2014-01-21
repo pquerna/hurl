@@ -15,36 +15,45 @@
  *
  */
 
-package common
+package workers
 
 import (
 	"fmt"
+	"github.com/pquerna/hurl/common"
 )
 
 type ResultSaver interface {
-	SaveRecord(interface{}) error
+	SaveRecord(string) error
 }
 
 type Worker interface {
-	Start(interface{}) (string, error)
+	Start() (string, error)
 	Halt(string) error
 	Status(string) (string, error)
 	Results(string, ResultSaver) error
 }
 
-func AssembleWorkers(conf *BasicConfig) ([]Worker, error) {
-	if conf.Cluster != "" {
-		// TODO: add ClusterWorker
-		return nil, fmt.Errorf("TODO: Cluster support")
-	}
+type newWorker func() (Worker)
 
-	return []Worker{&LocalWorker{}}, nil
+func Run(conf *common.BasicConfig) (error) {
+//	if clusterConf != "" {
+//		// TODO: add ClusterWorker
+//		return nil, fmt.Errorf("TODO: Cluster support")
+//	}
+//	return []Worker{&LocalWorker{WorkerType: "blah"}}, nil
+	return fmt.Errorf("NOT IMPLEMENTED")
 }
 
-type LocalWorker struct{}
+func Register(wt string,  nw newWorker) {
 
-func (lw *LocalWorker) Start(conf interface{}) (string, error) {
-	return "", nil
+}
+
+type LocalWorker struct {
+	WorkerType string
+}
+
+func (lw *LocalWorker) Start() (string, error) {
+	return "", fmt.Errorf("unknown worker type: %s", lw.WorkerType)
 }
 
 func (lw *LocalWorker) Halt(id string) error {
