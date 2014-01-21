@@ -22,11 +22,12 @@ import (
 )
 
 type BasicConfig struct {
-	numRequests int
-	concurrency int
+	Url         string
+	NumRequests int64
+	Concurrency int
 }
 
-func (config *BasicConfig) AddFlags(flags *flag.FlagSet) {
-	flags.IntVarP(&config.numRequests, "numrequests", "n", 10000, "Number of requests.")
-	flags.IntVarP(&config.concurrency, "concurrency", "c", 100, "Number of concurrent requests.")
+func (conf *BasicConfig) AddFlags(flags *flag.FlagSet) {
+	flags.Int64VarP(&conf.NumRequests, "numrequests", "n", 10000, "Number of requests.")
+	flags.IntVarP(&conf.Concurrency, "concurrency", "c", 100, "Number of concurrent workers.")
 }

@@ -37,6 +37,23 @@ func ConsoleCommand() *cobra.Command {
 }
 
 func ConsoleRun(cmd *cobra.Command, args []string) {
+	if len(args) != 1 {
+		cmd.Printf("Error: Expected 1 URL, got: %s", args)
+		cmd.Println("")
+		cmd.UsageFunc()(cmd)
+		return
+	}
+
+	g_config.Url = args[0]
+
+	err := g_config.Validate()
+	if err != nil {
+		cmd.Printf("Error: %s", err)
+		cmd.Println("")
+		cmd.UsageFunc()(cmd)
+		return
+	}
+
 	// Assemble Smashers.
 	// Distribute load.
 	// RUN IT
