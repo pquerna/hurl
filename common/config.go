@@ -23,6 +23,7 @@ import (
 
 type BasicConfig struct {
 	Url         string
+	Cluster     string
 	NumRequests int64
 	Concurrency int
 }
@@ -30,4 +31,5 @@ type BasicConfig struct {
 func (conf *BasicConfig) AddFlags(flags *flag.FlagSet) {
 	flags.Int64VarP(&conf.NumRequests, "numrequests", "n", 10000, "Number of requests.")
 	flags.IntVarP(&conf.Concurrency, "concurrency", "c", 100, "Number of concurrent workers.")
+	flags.StringVarP(&conf.Cluster, "cluster", "", "", "Peer nodes to use, if none, use this process.")
 }

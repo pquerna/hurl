@@ -18,6 +18,8 @@
 package http
 
 import (
+	"fmt"
+	"github.com/pquerna/hurl/common"
 	"github.com/spf13/cobra"
 )
 
@@ -36,11 +38,15 @@ func ConsoleCommand() *cobra.Command {
 	return cmd
 }
 
+func consoleErr(cmd *cobra.Command, str string) {
+	cmd.Printf(str)
+	cmd.Println("")
+	cmd.UsageFunc()(cmd)
+}
+
 func ConsoleRun(cmd *cobra.Command, args []string) {
 	if len(args) != 1 {
-		cmd.Printf("Error: Expected 1 URL, got: %s", args)
-		cmd.Println("")
-		cmd.UsageFunc()(cmd)
+		consoleErr(cmd, fmt.Sprintf("Error: Expected 1 URL, got: %s", args))
 		return
 	}
 
@@ -48,12 +54,19 @@ func ConsoleRun(cmd *cobra.Command, args []string) {
 
 	err := g_config.Validate()
 	if err != nil {
-		cmd.Printf("Error: %s", err)
-		cmd.Println("")
-		cmd.UsageFunc()(cmd)
+		consoleErr(cmd, fmt.Sprintf("Error: %s", err))
 		return
 	}
 
+	workers, err := common.AssembleWorkers(&g_config.BasicConfig)
+	if err != nil {
+		consoleErr(cmd, fmt.Sprintf("Error: %s", err))
+		return
+	}
+
+	_ = workers
+
+	// common.DistributeLoad(g_config)
 	// Assemble Smashers.
 	// Distribute load.
 	// RUN IT
