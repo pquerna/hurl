@@ -18,16 +18,15 @@
 package common
 
 import (
-	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
 )
 
-type Config struct {
+type BasicConfig struct {
 	numRequests int
 	concurrency int
 }
 
-func (config *Config) AddCommonFlags(cmd *cobra.Command) {
-	flags := cmd.Flags()
+func (config *BasicConfig) AddFlags(flags *flag.FlagSet) {
 	flags.IntVarP(&config.numRequests, "numrequests", "n", 10000, "Number of requests.")
 	flags.IntVarP(&config.concurrency, "concurrency", "c", 100, "Number of concurrent requests.")
 }

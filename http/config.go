@@ -19,11 +19,18 @@ package http
 
 import (
 	"github.com/pquerna/hurl/common"
+	flag "github.com/spf13/pflag"
 )
 
 type Config struct {
-	common.Config
+	common.BasicConfig
 	method    string
 	url       string
 	keepalive bool
+}
+
+func (config *Config) AddFlags(flags *flag.FlagSet) {
+	config.BasicConfig.AddFlags(flags)
+	flags.StringVarP(&config.method, "method", "m", "GET", "HTTP method to use.")
+	flags.BoolVarP(&config.keepalive, "keepalive", "k", true, "Enable HTTP Keepalive")
 }

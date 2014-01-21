@@ -31,10 +31,7 @@ func ConsoleCommand() *cobra.Command {
 		Run:   ConsoleRun,
 	}
 
-	flags := cmd.Flags()
-	g_config.AddCommonFlags(cmd)
-	flags.StringVarP(&g_config.method, "method", "m", "GET", "HTTP method to use.")
-	flags.BoolVarP(&g_config.keepalive, "keepalive", "k", true, "Enable HTTP Keepalive")
+	g_config.AddFlags(cmd.Flags())
 
 	return cmd
 }
