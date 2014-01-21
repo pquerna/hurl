@@ -10,7 +10,8 @@ deps:
 fmt:
 	go fmt ./hurl
 	go fmt ./ui
-	go fmt ./smash/http
+	go fmt ./http
+	go fmt ./common
 
 test: clean
 	go test -v ./...

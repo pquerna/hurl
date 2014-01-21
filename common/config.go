@@ -15,34 +15,19 @@
  *
  */
 
-package http
+package common
 
 import (
 	"github.com/spf13/cobra"
 )
 
-var g_config = Config{}
-
-func ConsoleCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "smash",
-		Short: "Send basic HTTP or HTTPS traffic to a server.",
-		Long:  ``,
-		Run:   ConsoleRun,
-	}
-
-	flags := cmd.Flags()
-	flags.StringVarP(&g_config.method, "method", "m", "GET", "HTTP method to use.")
-	flags.IntVarP(&g_config.numRequests, "numrequests", "n", 1000, "Number of requests")
-	flags.BoolVarP(&g_config.keepalive, "keepalive", "k", true, "Enable HTTP Keepalive")
-
-	return cmd
+type Config struct {
+	numRequests int
+	concurrency int
 }
 
-func ConsoleRun(cmd *cobra.Command, args []string) {
-	// Assemble Smashers.
-	// Distribute load.
-	// RUN IT
-	// Get Reports.
-	// Render Reports.
+func (config *Config) AddCommonFlags(cmd *cobra.Command) {
+	flags := cmd.Flags()
+	flags.IntVarP(&config.numRequests, "numrequests", "n", 10000, "Number of requests.")
+	flags.IntVarP(&config.concurrency, "concurrency", "c", 100, "Number of concurrent requests.")
 }

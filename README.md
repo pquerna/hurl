@@ -12,9 +12,9 @@ You can start using `hurl` with commands similar to Apache Bench `ab`, but as yo
 
 ## Running
 
-`hurl smash` supports most of the basic arguments from Apache Bench.  A simple example:
+`hurl http` supports most of the basic arguments from Apache Bench.  A simple example:
 
-    hurl smash -c 100 -n 10000 http://127.0.0.1/
+    hurl http -c 100 -n 10000 http://127.0.0.1/
 
 Would run 100 concurrent clients until 10,000 requests have been completed against `http://127.0.0.1/`.
 
@@ -32,7 +32,7 @@ the previous example could be written as:
     }
 ```
 
-And then ran as `hurl smash --config 100clients.json`.   While this example is more verbose, the JSON format
+And then ran as `hurl http --config 100clients.json`.   While this example is more verbose, the JSON format
 enables building complicated and large test plans hitting multiple URLs, or ramping up traffic.
 
 ## Scaling Out
@@ -42,7 +42,7 @@ enables building complicated and large test plans hitting multiple URLs, or ramp
 ```sh
 hurl daemon -p 8000 -s secret &
 hurl daemon -p 8001 -s secret &
-hurl smash -cluster :8000,:8001 -c 100 -n 10000 http://127.0.0.1/
+hurl http -cluster :8000,:8001 -c 100 -n 10000 http://127.0.0.1/
 ```
 
 
@@ -52,7 +52,7 @@ hurl smash -cluster :8000,:8001 -c 100 -n 10000 http://127.0.0.1/
 
 ```sh
 
-hurl smash-mongo -c 100 -n 100000 -rwmix 80 mongodb://10.0.0.1/mydatabase
+hurl mongo -c 100 -n 100000 -rwmix 80 mongodb://10.0.0.1/mydatabase
 ```
 
 The scaling out abilities also work with the non-HTTP smasher too.

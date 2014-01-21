@@ -17,9 +17,32 @@
 
 package http
 
-type Config struct {
-	method      string
-	url         string
-	keepalive   bool
-	numRequests int
+import (
+	"github.com/spf13/cobra"
+)
+
+var g_config = Config{}
+
+func ConsoleCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "http",
+		Short: "Send basic HTTP or HTTPS traffic to a server.",
+		Long:  ``,
+		Run:   ConsoleRun,
+	}
+
+	flags := cmd.Flags()
+	g_config.AddCommonFlags(cmd)
+	flags.StringVarP(&g_config.method, "method", "m", "GET", "HTTP method to use.")
+	flags.BoolVarP(&g_config.keepalive, "keepalive", "k", true, "Enable HTTP Keepalive")
+
+	return cmd
+}
+
+func ConsoleRun(cmd *cobra.Command, args []string) {
+	// Assemble Smashers.
+	// Distribute load.
+	// RUN IT
+	// Get Reports.
+	// Render Reports.
 }
