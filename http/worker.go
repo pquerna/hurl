@@ -18,17 +18,9 @@
 package http
 
 import (
+	"github.com/pquerna/hurl/common"
 	"github.com/pquerna/hurl/workers"
 )
-
-func RunWorkers(conf *Config) error {
-	err := workers.Run(&conf.BasicConfig)
-	if err != nil {
-		return err
-	}
-	// TODO: results holder
-	return nil
-}
 
 func init() {
 	workers.Register("http-v1", NewWorker)
@@ -36,9 +28,9 @@ func init() {
 
 type Worker struct {
 	workers.LocalWorker
-	conf *Config
+	conf *common.HttpConfig
 }
 
-func NewWorker() *Worker {
-	return &Worker{}
+func NewWorker(c common.ConfigGetter) workers.Worker {
+	return &Worker{conf: c.GetHttpConfig()}
 }

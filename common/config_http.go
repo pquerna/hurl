@@ -15,29 +15,34 @@
  *
  */
 
-package http
+package common
 
 import (
 	"errors"
-	"fmt"
-	"github.com/pquerna/hurl/common"
 	flag "github.com/spf13/pflag"
 	"net/url"
 )
 
-type Config struct {
-	common.BasicConfig
+type HttpConfig struct {
+	BasicConfig
 	Method    string
 	Keepalive bool
 }
 
-func (conf *Config) AddFlags(flags *flag.FlagSet) {
+func (conf *HttpConfig) AddFlags(flags *flag.FlagSet) {
 	conf.BasicConfig.AddFlags(flags)
 	flags.StringVarP(&conf.Method, "method", "m", "GET", "HTTP method to use.")
 	flags.BoolVarP(&conf.Keepalive, "keepalive", "k", true, "Enable HTTP Keepalive")
 }
 
-func (conf *Config) Validate() error {
+func (conf *HttpConfig) Validate() error {
+
+	err := conf.BasicConfig.Validate()
+
+	if err != nil {
+		return err
+	}
+
 	u, err := url.Parse(conf.Url)
 
 	if err != nil {
@@ -46,10 +51,6 @@ func (conf *Config) Validate() error {
 
 	if u.IsAbs() != true {
 		return errors.New("URL must include scheme. (hint, http:// missing?)")
-	}
-
-	if conf.Concurrency > 250000 {
-		return fmt.Errorf("Concurrency of %d is unlikely to work well. Consider scaling out configuration?", conf.Concurrency)
 	}
 
 	return nil

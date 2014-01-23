@@ -18,8 +18,14 @@
 package common
 
 import (
+	"fmt"
 	flag "github.com/spf13/pflag"
 )
+
+type ConfigGetter interface {
+	GetBasicConfig() *BasicConfig
+	GetHttpConfig() *HttpConfig
+}
 
 type BasicConfig struct {
 	Url         string
@@ -32,4 +38,13 @@ func (conf *BasicConfig) AddFlags(flags *flag.FlagSet) {
 	flags.Int64VarP(&conf.NumRequests, "numrequests", "n", 10000, "Number of requests.")
 	flags.IntVarP(&conf.Concurrency, "concurrency", "c", 100, "Number of concurrent workers.")
 	flags.StringVarP(&conf.Cluster, "cluster", "", "", "Peer nodes to use, if none, use this process.")
+}
+
+func (conf *BasicConfig) Validate() error {
+
+	if conf.Concurrency > 250000 {
+		return fmt.Errorf("Concurrency of %d is unlikely to work well. Consider scaling out configuration?", conf.Concurrency)
+	}
+
+	return nil
 }

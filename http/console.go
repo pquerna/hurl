@@ -19,10 +19,11 @@ package http
 
 import (
 	"fmt"
+	"github.com/pquerna/hurl/common"
 	"github.com/spf13/cobra"
 )
 
-var g_config = Config{}
+var g_config = common.HttpConfig{}
 
 func ConsoleCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -57,11 +58,11 @@ func ConsoleRun(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	err = RunWorkers(&g_config)
-	if err != nil {
-		consoleErr(cmd, fmt.Sprintf("Error: %s", err))
-		return
-	}
+	//	err = RunWorkers(&g_config)
+	//	if err != nil {
+	//		consoleErr(cmd, fmt.Sprintf("Error: %s", err))
+	//		return
+	//	}
 
 	// Get Reports.
 	// Render Reports.

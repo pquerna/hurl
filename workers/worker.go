@@ -33,7 +33,7 @@ type Worker interface {
 	Results(string, ResultSaver) error
 }
 
-type newWorker func() (Worker)
+type newWorker func(common.ConfigGetter) (Worker)
 
 func Run(conf *common.BasicConfig) (error) {
 //	if clusterConf != "" {
