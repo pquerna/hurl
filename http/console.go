@@ -38,15 +38,9 @@ func ConsoleCommand() *cobra.Command {
 	return cmd
 }
 
-func consoleErr(cmd *cobra.Command, str string) {
-	cmd.Printf(str)
-	cmd.Println("")
-	cmd.UsageFunc()(cmd)
-}
-
 func ConsoleRun(cmd *cobra.Command, args []string) {
 	if len(args) != 1 {
-		consoleErr(cmd, fmt.Sprintf("Error: Expected 1 URL, got: %s", args))
+		common.ConsoleErr(cmd, fmt.Sprintf("Error: Expected 1 URL, got: %s", args))
 		return
 	}
 
@@ -54,7 +48,7 @@ func ConsoleRun(cmd *cobra.Command, args []string) {
 
 	err := g_config.Validate()
 	if err != nil {
-		consoleErr(cmd, fmt.Sprintf("Error: %s", err))
+		common.ConsoleErr(cmd, fmt.Sprintf("Error: %s", err))
 		return
 	}
 

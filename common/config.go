@@ -43,7 +43,11 @@ func (conf *BasicConfig) AddFlags(flags *flag.FlagSet) {
 func (conf *BasicConfig) Validate() error {
 
 	if conf.Concurrency > 250000 {
-		return fmt.Errorf("Concurrency of %d is unlikely to work well. Consider scaling out configuration?", conf.Concurrency)
+		return fmt.Errorf("concurrency of %d is unlikely to work well.", conf.Concurrency)
+	}
+
+	if conf.NumRequests < 0 {
+		return fmt.Errorf("numrequests of %d is less than zero.", conf.NumRequests)
 	}
 
 	return nil
