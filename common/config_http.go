@@ -20,7 +20,9 @@ package common
 import (
 	"errors"
 	flag "github.com/spf13/pflag"
+	"net"
 	"net/url"
+	"strings"
 )
 
 type HttpConfig struct {
@@ -34,6 +36,11 @@ func (conf *HttpConfig) AddFlags(flags *flag.FlagSet) {
 	flags.StringVarP(&conf.Method, "method", "m", "GET", "HTTP method to use.")
 	flags.BoolVarP(&conf.Keepalive, "keepalive", "k", true, "Enable HTTP Keepalive")
 }
+
+// Given a string of the form "host", "host:port", or "[ipv6::address]:port",
+// return true if the string includes a port.
+// TOOD(pquerna): move to netutils or such?
+func hasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
 
 func (conf *HttpConfig) Validate() error {
 
@@ -51,6 +58,25 @@ func (conf *HttpConfig) Validate() error {
 
 	if u.IsAbs() != true {
 		return errors.New("URL must include scheme. (hint, http:// missing?)")
+	}
+
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return errors.New("URL Scheme must be http or https.")
+	}
+
+	var host = u.Host
+
+	if hasPort(u.Host) {
+		host, _, err = net.SplitHostPort(u.Host)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = net.LookupIP(host)
+	if err != nil {
+		return err
 	}
 
 	return nil

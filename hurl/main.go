@@ -42,5 +42,6 @@ Complete documentation is available online at:
 		cmd.AddCommand(c)
 
 	}
+
 	cmd.Execute()
 }

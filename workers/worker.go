@@ -44,8 +44,14 @@ func Run(conf *common.BasicConfig) (error) {
 	return fmt.Errorf("NOT IMPLEMENTED")
 }
 
-func Register(wt string,  nw newWorker) {
+var g_workers_types map[string]newWorker
 
+func init() {
+	g_workers_types = make(map[string]newWorker)
+}
+
+func Register(wt string,  nw newWorker) {
+	g_workers_types[wt] = nw
 }
 
 type LocalWorker struct {
