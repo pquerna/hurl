@@ -18,6 +18,7 @@
 package http
 
 import (
+	"errors"
 	"github.com/pquerna/hurl/common"
 	"github.com/pquerna/hurl/workers"
 	nhttp "net/http"
@@ -47,7 +48,12 @@ func NewTask(c common.ConfigGetter) workers.WorkerTask {
 		DisableKeepAlives:   !conf.Keepalive,
 		MaxIdleConnsPerHost: conf.Concurrency,
 	}
-	client := &nhttp.Client{Transport: trans}
+	client := &nhttp.Client{
+		Transport: trans,
+		CheckRedirect: func(req *nhttp.Request, via []*nhttp.Request) error {
+			return errors.New("do not follow redirects")
+		},
+	}
 
 	url, err := url.Parse(conf.Url)
 	if err != nil {
