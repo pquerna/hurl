@@ -11,16 +11,12 @@ deps:
 	go get -u github.com/dchest/uniuri
 
 fmt:
-	go fmt ./common
-	go fmt ./http
-	go fmt ./hurl
-	go fmt ./ui
-	go fmt ./workers
+	go fmt github.com/pquerna/hurl/...
 
 test: clean
-	go test -v ./...
+	go test -v github.com/pquerna/hurl/...
 
 clean:
-	go clean
+	go clean -i github.com/pquerna/hurl/...
 
 .PHONY: deps clean test fmt install all
