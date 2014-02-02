@@ -23,22 +23,21 @@ import (
 )
 
 func init() {
-	workers.Register("http", NewWorker)
+	workers.Register("http", NewTask)
 }
 
-type Worker struct {
-	workers.LocalWorker
+type Task struct {
 	conf *common.HttpConfig
 }
 
-func NewWorker(c common.ConfigGetter) workers.Worker {
+func NewTask(c common.ConfigGetter) workers.WorkerTask {
 	conf := c.GetHttpConfig()
 	if conf == nil {
 		panic("Invalid Configuration object for http/1 worker")
 	}
-	return &Worker{conf: conf}
+	return &Task{conf: conf}
 }
 
-func (w *Worker) Work() (*common.Result, error) {
-	return nil, nil
+func (t *Task) Work() (*common.Result, error) {
+	return &common.Result{}, nil
 }

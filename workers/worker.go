@@ -29,28 +29,32 @@ type ResultSaver interface {
 	SaveRecord(string) error
 }
 
-type Worker interface {
-	Start(wg *sync.WaitGroup, NumRequests int64) error
-	Halt() error
+type WorkerTask interface {
 	Work() (*common.Result, error)
 }
 
-type newWorker func(common.ConfigGetter) Worker
-
-var g_workers_types map[string]newWorker
-
-func init() {
-	g_workers_types = make(map[string]newWorker)
+type Worker interface {
+	Start(wg *sync.WaitGroup, NumRequests int64) error
+	Halt() error
 }
 
-func Register(wt string, nw newWorker) {
-	g_workers_types[wt] = nw
+type newTask func(common.ConfigGetter) WorkerTask
+
+var g_workers_tasks map[string]newTask
+
+func init() {
+	g_workers_tasks = make(map[string]newTask)
+}
+
+func Register(wt string, nt newTask) {
+	g_workers_tasks[wt] = nt
 }
 
 type LocalWorker struct {
 	WorkerType  string
 	wg          *sync.WaitGroup
 	NumRequests int64
+	task        WorkerTask
 	rs          ResultSaver
 }
 
@@ -60,13 +64,14 @@ func (lw *LocalWorker) runWorker(id string) {
 
 	for i = 0; i < lw.NumRequests; i++ {
 		startTime := time.Now()
-		results, err := lw.Work()
+		results, err := lw.task.Work()
 		duration := time.Since(startTime)
 		if err != nil {
 			// TODO: report this back to UI in a better way? Convert to ErrorResult?
 			panic(err)
 			return
 		}
+
 		if results.Id == "" {
 			results.Id = fmt.Sprintf("%s-%d", id, i)
 		}
@@ -84,28 +89,24 @@ func (lw *LocalWorker) Start(wg *sync.WaitGroup, numRequests int64) error {
 	return nil
 }
 
-func (lw *LocalWorker) Work() (*common.Result, error) {
-	return nil, fmt.Errorf("unreachable?")
-}
-
 func (lw *LocalWorker) Halt() error {
 	return nil
 }
 
-func Run(workerType string, conf common.ConfigGetter) error {
+func Run(task string, conf common.ConfigGetter) error {
 	//	if clusterConf != "" {
 	//		// TODO: add ClusterWorker
 	//		return nil, fmt.Errorf("TODO: Cluster support")
 	//	}
-	wt, ok := g_workers_types[workerType]
+	wt, ok := g_workers_tasks[task]
 	if !ok {
-		return fmt.Errorf("unknown worker type: %s", workerType)
+		return fmt.Errorf("unknown worker type: %s", task)
 	}
 
 	bconf := conf.GetBasicConfig()
 	workers := make([]Worker, bconf.Concurrency)
 	for index, _ := range workers {
-		workers[index] = wt(conf)
+		workers[index] = &LocalWorker{task: wt(conf)}
 	}
 
 	defer func() {
