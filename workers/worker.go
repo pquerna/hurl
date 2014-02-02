@@ -93,7 +93,7 @@ func (lw *LocalWorker) Halt() error {
 	return nil
 }
 
-func Run(task string, conf common.ConfigGetter) error {
+func Run(ui common.UI, task string, conf common.ConfigGetter) error {
 	//	if clusterConf != "" {
 	//		// TODO: add ClusterWorker
 	//		return nil, fmt.Errorf("TODO: Cluster support")
@@ -109,6 +109,7 @@ func Run(task string, conf common.ConfigGetter) error {
 		workers[index] = &LocalWorker{task: wt(conf)}
 	}
 
+	ui.WorkStart(bconf.NumRequests)
 	defer func() {
 		for _, worker := range workers {
 			worker.Halt()
@@ -128,9 +129,11 @@ func Run(task string, conf common.ConfigGetter) error {
 
 	for i = 0; i < bconf.NumRequests; i++ {
 		reqchan <- i
+		// TOOD: ui.WorkStatus(numDone int64)
 	}
 	close(reqchan)
 	wg.Wait()
+	ui.WorkEnd()
 
 	return nil
 }

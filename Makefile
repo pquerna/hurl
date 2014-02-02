@@ -9,6 +9,7 @@ deps:
 	go get -u launchpad.net/gocheck
 	go get -u github.com/spf13/cobra
 	go get -u github.com/dchest/uniuri
+	go get -u github.com/cheggaaa/pb
 
 fmt:
 	go fmt github.com/pquerna/hurl/...

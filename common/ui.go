@@ -15,28 +15,10 @@
  *
  */
 
-package ui
+package common
 
-import (
-	"fmt"
-	"github.com/pquerna/hurl/http"
-	"github.com/spf13/cobra"
-)
-
-func ConsoleCommands() []*cobra.Command {
-	cui := NewConsoleUI()
-
-	rv := []*cobra.Command{
-		&cobra.Command{
-			Use:   "version",
-			Short: "Print the version number of hurl",
-			Long:  `All software has versions. This is hurl's`,
-			Run: func(cmd *cobra.Command, args []string) {
-				fmt.Println("0.1.0-dev")
-			},
-		},
-		http.ConsoleCommand(cui),
-	}
-
-	return rv
+type UI interface {
+	WorkStart(numTodo int64)
+	WorkStatus(numDone int64)
+	WorkEnd()
 }

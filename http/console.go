@@ -26,12 +26,14 @@ import (
 
 var g_config = common.HttpConfig{}
 
-func ConsoleCommand() *cobra.Command {
+func ConsoleCommand(ui common.UI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "http",
 		Short: "Send basic HTTP or HTTPS traffic to a server.",
 		Long:  ``,
-		Run:   ConsoleRun,
+		Run: func(cmd *cobra.Command, args []string) {
+			ConsoleRun(ui, cmd, args)
+		},
 	}
 
 	g_config.AddFlags(cmd.Flags())
@@ -39,7 +41,7 @@ func ConsoleCommand() *cobra.Command {
 	return cmd
 }
 
-func ConsoleRun(cmd *cobra.Command, args []string) {
+func ConsoleRun(ui common.UI, cmd *cobra.Command, args []string) {
 	if len(args) != 1 {
 		common.ConsoleErr(cmd, fmt.Sprintf("Error: Expected 1 URL, got: %s", args))
 		return
@@ -53,7 +55,7 @@ func ConsoleRun(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	err = workers.Run("http", &g_config)
+	err = workers.Run(ui, "http", &g_config)
 	if err != nil {
 		common.ConsoleErr(cmd, fmt.Sprintf("Error: %s", err))
 		return

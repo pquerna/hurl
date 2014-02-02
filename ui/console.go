@@ -18,25 +18,28 @@
 package ui
 
 import (
-	"fmt"
-	"github.com/pquerna/hurl/http"
-	"github.com/spf13/cobra"
+	"github.com/cheggaaa/pb"
 )
 
-func ConsoleCommands() []*cobra.Command {
-	cui := NewConsoleUI()
+type ConsoleUI struct {
+	Bar *pb.ProgressBar
+}
 
-	rv := []*cobra.Command{
-		&cobra.Command{
-			Use:   "version",
-			Short: "Print the version number of hurl",
-			Long:  `All software has versions. This is hurl's`,
-			Run: func(cmd *cobra.Command, args []string) {
-				fmt.Println("0.1.0-dev")
-			},
-		},
-		http.ConsoleCommand(cui),
-	}
+func NewConsoleUI() *ConsoleUI {
+	return &ConsoleUI{}
+}
 
-	return rv
+func (cui *ConsoleUI) WorkStart(numTodo int64) {
+	cui.Bar = pb.New(0)
+	cui.Bar.Total = numTodo
+	cui.Bar.Start()
+}
+
+func (cui *ConsoleUI) WorkStatus(numDone int64) {
+	// TODO: Add Set64 to PB? super lame.
+	cui.Bar.Set(int(numDone))
+}
+
+func (cui *ConsoleUI) WorkEnd() {
+	cui.Bar.FinishPrint("Complete.")
 }
