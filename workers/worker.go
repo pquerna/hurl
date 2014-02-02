@@ -30,11 +30,11 @@ type ResultSaver interface {
 }
 
 type WorkerTask interface {
-	Work() (*common.Result, error)
+	Work(rv *common.Result) error
 }
 
 type Worker interface {
-	Start(wg *sync.WaitGroup, NumRequests int64) error
+	Start(wg *sync.WaitGroup, reqChan chan int64) error
 	Halt() error
 }
 
@@ -51,37 +51,37 @@ func Register(wt string, nt newTask) {
 }
 
 type LocalWorker struct {
-	WorkerType  string
-	wg          *sync.WaitGroup
-	NumRequests int64
-	task        WorkerTask
-	rs          ResultSaver
+	WorkerType string
+	wg         *sync.WaitGroup
+	reqChan    chan int64
+	task       WorkerTask
+	rs         ResultSaver
 }
 
 func (lw *LocalWorker) runWorker(id string) {
 	defer lw.wg.Done()
-	var i int64
 
-	for i = 0; i < lw.NumRequests; i++ {
+	for {
+		reqNum, ok := <-lw.reqChan
+		if !ok {
+			return
+		}
+		rv := common.Result{Id: fmt.Sprintf("%s-%d", id, reqNum)}
 		startTime := time.Now()
-		results, err := lw.task.Work()
+		err := lw.task.Work(&rv)
 		duration := time.Since(startTime)
 		if err != nil {
 			// TODO: report this back to UI in a better way? Convert to ErrorResult?
 			panic(err)
 			return
 		}
-
-		if results.Id == "" {
-			results.Id = fmt.Sprintf("%s-%d", id, i)
-		}
-		results.Duration = duration
+		rv.Duration = duration
 		// TODO: results storage
 	}
 }
 
-func (lw *LocalWorker) Start(wg *sync.WaitGroup, numRequests int64) error {
-	lw.NumRequests = numRequests
+func (lw *LocalWorker) Start(wg *sync.WaitGroup, reqChan chan int64) error {
+	lw.reqChan = reqChan
 	lw.wg = wg
 	lw.wg.Add(1)
 	go lw.runWorker(uniuri.New())
@@ -116,15 +116,20 @@ func Run(task string, conf common.ConfigGetter) error {
 	}()
 
 	var wg sync.WaitGroup
-	requestsPerWorker := int64(float64(bconf.NumRequests) / float64(bconf.Concurrency))
-
+	reqchan := make(chan int64, 1024*1024)
 	for _, worker := range workers {
-		err := worker.Start(&wg, requestsPerWorker)
+		err := worker.Start(&wg, reqchan)
 		if err != nil {
 			return err
 		}
 	}
 
+	var i int64
+
+	for i = 0; i < bconf.NumRequests; i++ {
+		reqchan <- i
+	}
+	close(reqchan)
 	wg.Wait()
 
 	return nil
