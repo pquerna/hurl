@@ -25,16 +25,12 @@ import (
 	"time"
 )
 
-type ResultSaver interface {
-	SaveRecord(string) error
-}
-
 type WorkerTask interface {
 	Work(rv *common.Result) error
 }
 
 type Worker interface {
-	Start(wg *sync.WaitGroup, reqChan chan int64) error
+	Start(wg *sync.WaitGroup, reqChan chan int64, resChan chan *common.Result) error
 	Halt() error
 }
 
@@ -54,8 +50,8 @@ type LocalWorker struct {
 	WorkerType string
 	wg         *sync.WaitGroup
 	reqChan    chan int64
+	resChan    chan *common.Result
 	task       WorkerTask
-	rs         ResultSaver
 }
 
 func (lw *LocalWorker) runWorker(id string) {
@@ -77,11 +73,13 @@ func (lw *LocalWorker) runWorker(id string) {
 		}
 		rv.Duration = duration
 		// TODO: results storage
+		lw.resChan <- &rv
 	}
 }
 
-func (lw *LocalWorker) Start(wg *sync.WaitGroup, reqChan chan int64) error {
+func (lw *LocalWorker) Start(wg *sync.WaitGroup, reqChan chan int64, resChan chan *common.Result) error {
 	lw.reqChan = reqChan
+	lw.resChan = resChan
 	lw.wg = wg
 	lw.wg.Add(1)
 	go lw.runWorker(uniuri.New())
@@ -118,8 +116,10 @@ func Run(ui common.UI, task string, conf common.ConfigGetter) error {
 
 	var wg sync.WaitGroup
 	reqchan := make(chan int64, 1024*1024)
+	// TODO: how big should this be?
+	reschan := make(chan *common.Result)
 	for _, worker := range workers {
-		err := worker.Start(&wg, reqchan)
+		err := worker.Start(&wg, reqchan, reschan)
 		if err != nil {
 			return err
 		}
@@ -131,8 +131,21 @@ func Run(ui common.UI, task string, conf common.ConfigGetter) error {
 		reqchan <- i
 		// TOOD: ui.WorkStatus(numDone int64)
 	}
+	go func() {
+		i = 0
+		for {
+			_, ok := <-reschan
+			if !ok {
+				return
+			}
+			i++
+			ui.WorkStatus(i)
+		}
+	}()
+
 	close(reqchan)
 	wg.Wait()
+	close(reschan)
 	ui.WorkEnd()
 
 	return nil
