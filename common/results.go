@@ -15,30 +15,13 @@
  *
  */
 
-package http
+package common
 
 import (
-	"github.com/pquerna/hurl/common"
-	"github.com/pquerna/hurl/workers"
+	"time"
 )
 
-func init() {
-	workers.Register("http", NewWorker)
-}
-
-type Worker struct {
-	workers.LocalWorker
-	conf *common.HttpConfig
-}
-
-func NewWorker(c common.ConfigGetter) workers.Worker {
-	conf := c.GetHttpConfig()
-	if conf == nil {
-		panic("Invalid Configuration object for http/1 worker")
-	}
-	return &Worker{conf: conf}
-}
-
-func (w *Worker) Work() (*common.Result, error) {
-	return nil, nil
+type Result struct {
+	Id       string
+	Duration time.Duration
 }

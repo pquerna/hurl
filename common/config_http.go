@@ -81,3 +81,7 @@ func (conf *HttpConfig) Validate() error {
 
 	return nil
 }
+
+func (conf *HttpConfig) GetHttpConfig() *HttpConfig {
+	return conf
+}

@@ -20,6 +20,7 @@ package http
 import (
 	"fmt"
 	"github.com/pquerna/hurl/common"
+	"github.com/pquerna/hurl/workers"
 	"github.com/spf13/cobra"
 )
 
@@ -52,11 +53,11 @@ func ConsoleRun(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	//	err = RunWorkers(&g_config)
-	//	if err != nil {
-	//		consoleErr(cmd, fmt.Sprintf("Error: %s", err))
-	//		return
-	//	}
+	err = workers.Run("http", &g_config)
+	if err != nil {
+		common.ConsoleErr(cmd, fmt.Sprintf("Error: %s", err))
+		return
+	}
 
 	// Get Reports.
 	// Render Reports.

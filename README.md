@@ -4,7 +4,7 @@
 
 `hurl` provides a suite of network benchmarking and result analytic tools.
 
-You can start using `hurl` with commands similar to Apache Bench `ab`, but as your needs grow, it exposes a framework for much more complicated and intense test plans.
+You can start using `hurl` with commands similar to Apache Bench `ab`, but as your needs grow, it exposes a framework for more complicated and large scale test plans, including distributing work across many machines.
 
 ## Installation
 
@@ -42,7 +42,7 @@ enables building complicated and large test plans hitting multiple URLs, or ramp
 ```sh
 hurl daemon -p 8000 -s secret &
 hurl daemon -p 8001 -s secret &
-hurl http -cluster :8000,:8001 -c 100 -n 10000 http://127.0.0.1/
+hurl http -cluster :8000,:8001 -s secret -c 100 -n 10000 http://127.0.0.1/
 ```
 
 

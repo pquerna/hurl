@@ -19,10 +19,12 @@ package common
 
 import (
 	"github.com/spf13/cobra"
+	"os"
 )
 
 func ConsoleErr(cmd *cobra.Command, str string) {
 	cmd.Printf(str)
 	cmd.Println("")
 	cmd.UsageFunc()(cmd)
+	os.Exit(1)
 }

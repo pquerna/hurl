@@ -23,6 +23,7 @@ import (
 )
 
 type ConfigGetter interface {
+	// TODO(pquerna): This interface sucks. FIX ME.
 	GetBasicConfig() *BasicConfig
 	GetHttpConfig() *HttpConfig
 }
@@ -50,5 +51,13 @@ func (conf *BasicConfig) Validate() error {
 		return fmt.Errorf("numrequests of %d is less than zero.", conf.NumRequests)
 	}
 
+	return nil
+}
+
+func (conf *BasicConfig) GetBasicConfig() *BasicConfig {
+	return conf
+}
+
+func (conf *BasicConfig) GetHttpConfig() *HttpConfig {
 	return nil
 }
