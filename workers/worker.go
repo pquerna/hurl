@@ -91,6 +91,19 @@ func (lw *LocalWorker) Halt() error {
 	return nil
 }
 
+func resultHanlder(ui common.UI, wgres *sync.WaitGroup, resChan chan *common.Result) {
+	defer func() { wgres.Done() }()
+	var i int64 = 0
+	for {
+		_, ok := <-resChan
+		if !ok {
+			return
+		}
+		i++
+		ui.WorkStatus(i)
+	}
+}
+
 func Run(ui common.UI, task string, conf common.ConfigGetter) error {
 	//	if clusterConf != "" {
 	//		// TODO: add ClusterWorker
@@ -115,6 +128,7 @@ func Run(ui common.UI, task string, conf common.ConfigGetter) error {
 	}()
 
 	var wg sync.WaitGroup
+	var wgres sync.WaitGroup
 	reqchan := make(chan int64, 1024*1024)
 	// TODO: how big should this be?
 	reschan := make(chan *common.Result)
@@ -131,21 +145,14 @@ func Run(ui common.UI, task string, conf common.ConfigGetter) error {
 		reqchan <- i
 		// TOOD: ui.WorkStatus(numDone int64)
 	}
-	go func() {
-		i = 0
-		for {
-			_, ok := <-reschan
-			if !ok {
-				return
-			}
-			i++
-			ui.WorkStatus(i)
-		}
-	}()
+	wgres.Add(1)
+
+	go resultHanlder(ui, &wgres, reschan)
 
 	close(reqchan)
 	wg.Wait()
 	close(reschan)
+	wgres.Wait()
 	ui.WorkEnd()
 
 	return nil
