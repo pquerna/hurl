@@ -18,13 +18,32 @@
 package common
 
 import (
+	"fmt"
 	"github.com/spf13/cobra"
 	"os"
 )
+
+type RunCmd func(ui UI, taskType string, conf ConfigGetter) error
 
 func ConsoleErr(cmd *cobra.Command, str string) {
 	cmd.Printf(str)
 	cmd.Println("")
 	cmd.UsageFunc()(cmd)
 	os.Exit(1)
+}
+
+func ConsoleRun(runner RunCmd, workerType string, config ConfigGetter, ui UI, cmd *cobra.Command, args []string) {
+	err := config.Validate()
+	if err != nil {
+		ConsoleErr(cmd, fmt.Sprintf("Error: %s", err))
+		return
+	}
+
+	err = runner(ui, "http", config)
+	if err != nil {
+		ConsoleErr(cmd, fmt.Sprintf("Error: %s", err))
+		return
+	}
+	// Get Reports.
+	// Render Reports.
 }

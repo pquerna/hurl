@@ -18,6 +18,7 @@
 package workers
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/dchest/uniuri"
 	"github.com/pquerna/hurl/common"
@@ -30,7 +31,7 @@ type WorkerTask interface {
 }
 
 type Worker interface {
-	Start(wg *sync.WaitGroup, reqChan chan int64, resChan chan *common.Result) error
+	Start(taskType string, wg *sync.WaitGroup, reqChan chan int64, resChan chan *common.Result) error
 	Halt() error
 }
 
@@ -54,7 +55,7 @@ type LocalWorker struct {
 	task       WorkerTask
 }
 
-func (lw *LocalWorker) runWorker(id string) {
+func (lw *LocalWorker) runWorker(taskType string, id string) {
 	defer lw.wg.Done()
 
 	for {
@@ -62,9 +63,9 @@ func (lw *LocalWorker) runWorker(id string) {
 		if !ok {
 			return
 		}
-		rv := common.Result{Id: fmt.Sprintf("%s-%d", id, reqNum)}
+		rv := common.NewResult(taskType, fmt.Sprintf("%s-%d", id, reqNum))
 		startTime := time.Now()
-		err := lw.task.Work(&rv)
+		err := lw.task.Work(rv)
 		duration := time.Since(startTime)
 		if err != nil {
 			// TODO: report this back to UI in a better way? Convert to ErrorResult?
@@ -73,16 +74,16 @@ func (lw *LocalWorker) runWorker(id string) {
 		}
 		rv.Duration = duration
 		// TODO: results storage
-		lw.resChan <- &rv
+		lw.resChan <- rv
 	}
 }
 
-func (lw *LocalWorker) Start(wg *sync.WaitGroup, reqChan chan int64, resChan chan *common.Result) error {
+func (lw *LocalWorker) Start(taskType string, wg *sync.WaitGroup, reqChan chan int64, resChan chan *common.Result) error {
 	lw.reqChan = reqChan
 	lw.resChan = resChan
 	lw.wg = wg
 	lw.wg.Add(1)
-	go lw.runWorker(uniuri.New())
+	go lw.runWorker(taskType, uniuri.New())
 
 	return nil
 }
@@ -95,23 +96,29 @@ func resultHanlder(ui common.UI, wgres *sync.WaitGroup, resChan chan *common.Res
 	defer func() { wgres.Done() }()
 	var i int64 = 0
 	for {
-		_, ok := <-resChan
+		rv, ok := <-resChan
 		if !ok {
 			return
 		}
 		i++
 		ui.WorkStatus(i)
+		b, err := json.Marshal(rv)
+		if err != nil {
+			panic(err)
+		}
+		println("GOT JSON")
+		fmt.Println(string(b))
 	}
 }
 
-func Run(ui common.UI, task string, conf common.ConfigGetter) error {
+func Run(ui common.UI, taskType string, conf common.ConfigGetter) error {
 	//	if clusterConf != "" {
 	//		// TODO: add ClusterWorker
 	//		return nil, fmt.Errorf("TODO: Cluster support")
 	//	}
-	wt, ok := g_workers_tasks[task]
+	wt, ok := g_workers_tasks[taskType]
 	if !ok {
-		return fmt.Errorf("unknown worker type: %s", task)
+		return fmt.Errorf("unknown worker type: %s", taskType)
 	}
 
 	bconf := conf.GetBasicConfig()
@@ -133,7 +140,7 @@ func Run(ui common.UI, task string, conf common.ConfigGetter) error {
 	// TODO: how big should this be?
 	reschan := make(chan *common.Result)
 	for _, worker := range workers {
-		err := worker.Start(&wg, reqchan, reschan)
+		err := worker.Start(taskType, &wg, reqchan, reschan)
 		if err != nil {
 			return err
 		}

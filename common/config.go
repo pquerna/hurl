@@ -26,6 +26,7 @@ type ConfigGetter interface {
 	// TODO(pquerna): This interface sucks. FIX ME.
 	GetBasicConfig() *BasicConfig
 	GetHttpConfig() *HttpConfig
+	Validate() error
 }
 
 type BasicConfig struct {

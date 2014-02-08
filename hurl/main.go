@@ -40,7 +40,6 @@ Complete documentation is available online at:
 
 	for _, c := range subcmds {
 		cmd.AddCommand(c)
-
 	}
 
 	cmd.Execute()

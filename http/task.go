@@ -18,11 +18,12 @@
 package http
 
 import (
-	"errors"
 	"github.com/pquerna/hurl/common"
 	"github.com/pquerna/hurl/workers"
+	"io/ioutil"
 	nhttp "net/http"
 	"net/url"
+	"strconv"
 )
 
 func init() {
@@ -30,9 +31,9 @@ func init() {
 }
 
 type Task struct {
-	conf   *common.HttpConfig
-	client *nhttp.Client
-	URL    *url.URL
+	conf      *common.HttpConfig
+	transport *nhttp.Transport
+	URL       *url.URL
 }
 
 func NewTask(c common.ConfigGetter) workers.WorkerTask {
@@ -48,22 +49,22 @@ func NewTask(c common.ConfigGetter) workers.WorkerTask {
 		DisableKeepAlives:   !conf.Keepalive,
 		MaxIdleConnsPerHost: conf.Concurrency,
 	}
-	client := &nhttp.Client{
-		Transport: trans,
-		CheckRedirect: func(req *nhttp.Request, via []*nhttp.Request) error {
-			return errors.New("do not follow redirects")
-		},
-	}
+	//	client := &nhttp.Client{
+	//		Transport: trans,
+	//		CheckRedirect: func(req *nhttp.Request, via []*nhttp.Request) error {
+	//			return errors.New("do not follow redirects")
+	//		},
+	//	}
 
 	url, err := url.Parse(conf.Url)
 	if err != nil {
 		panic("Broken URL")
 	}
 
-	return &Task{conf: conf, client: client, URL: url}
+	return &Task{conf: conf, transport: trans, URL: url}
 }
 
-func (t *Task) Request() *nhttp.Request {
+func (t *Task) Request(requestId string) *nhttp.Request {
 	req := &nhttp.Request{
 		Method: t.conf.Method,
 		URL:    t.URL,
@@ -77,10 +78,34 @@ func (t *Task) Request() *nhttp.Request {
 	}
 	// TODO: add custom headers
 	req.Header.Set("User-Agent", "hurl/1 http load tester; https://github.com/pquerna/hurl")
+	req.Header.Set("Request-Id", requestId)
 	return req
 }
 
 func (t *Task) Work(rv *common.Result) error {
-	t.client.Do(t.Request())
+	// TOOD: capture true bytes across wire.
+	req := t.Request(rv.Id)
+	resp, err := t.transport.RoundTrip(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// TOOD: extract any interesting resp.Headers?
+	rv.Meta["Scheme"] = t.URL.Scheme
+	rv.Meta["StatusCode"] = strconv.Itoa(resp.StatusCode)
+	rv.Meta["Proto"] = resp.Proto
+	rv.Meta["Server"] = resp.Header.Get("Server")
+	rv.Meta["Etag"] = resp.Header.Get("Etag")
+	rv.Meta["Cache-Control"] = resp.Header.Get("Cache-Control")
+	rv.Meta["Vary"] = resp.Header.Get("Vary")
+
+	// TODO: make a /dev/null sink and just count the bytes.
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	rv.Metrics["BodyLength"] = float64(len(body))
 	return nil
 }

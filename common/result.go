@@ -22,6 +22,18 @@ import (
 )
 
 type Result struct {
+	Type     string
 	Id       string
+	Error    bool
 	Duration time.Duration
+	// TODO: should we just do a map[string]interface{}?
+	Meta    map[string]string
+	Metrics map[string]float64
+}
+
+func NewResult(taskType string, id string) *Result {
+	r := &Result{Id: id, Type: taskType}
+	r.Meta = make(map[string]string)
+	r.Metrics = make(map[string]float64)
+	return r
 }

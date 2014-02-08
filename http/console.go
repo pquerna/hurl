@@ -49,18 +49,5 @@ func ConsoleRun(ui common.UI, cmd *cobra.Command, args []string) {
 
 	g_config.Url = args[0]
 
-	err := g_config.Validate()
-	if err != nil {
-		common.ConsoleErr(cmd, fmt.Sprintf("Error: %s", err))
-		return
-	}
-
-	err = workers.Run(ui, "http", &g_config)
-	if err != nil {
-		common.ConsoleErr(cmd, fmt.Sprintf("Error: %s", err))
-		return
-	}
-
-	// Get Reports.
-	// Render Reports.
+	common.ConsoleRun(workers.Run, "http", &g_config, ui, cmd, args)
 }
