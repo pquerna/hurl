@@ -18,10 +18,10 @@
 package workers
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/dchest/uniuri"
 	"github.com/pquerna/hurl/common"
+	"github.com/pquerna/hurl/reports"
 	"sync"
 	"time"
 )
@@ -92,7 +92,7 @@ func (lw *LocalWorker) Halt() error {
 	return nil
 }
 
-func resultHanlder(ui common.UI, wgres *sync.WaitGroup, resChan chan *common.Result) {
+func resultHanlder(ui common.UI, wgres *sync.WaitGroup, resChan chan *common.Result, raw *common.ResultArchiveWriter) {
 	defer func() { wgres.Done() }()
 	var i int64 = 0
 	for {
@@ -102,12 +102,7 @@ func resultHanlder(ui common.UI, wgres *sync.WaitGroup, resChan chan *common.Res
 		}
 		i++
 		ui.WorkStatus(i)
-		b, err := json.Marshal(rv)
-		if err != nil {
-			panic(err)
-		}
-		println("GOT JSON")
-		fmt.Println(string(b))
+		raw.Write(rv)
 	}
 }
 
@@ -154,7 +149,9 @@ func Run(ui common.UI, taskType string, conf common.ConfigGetter) error {
 	}
 	wgres.Add(1)
 
-	go resultHanlder(ui, &wgres, reschan)
+	rw := common.NewResultArchiveWriter()
+	defer rw.Remove()
+	go resultHanlder(ui, &wgres, reschan, rw)
 
 	close(reqchan)
 	wg.Wait()
@@ -162,5 +159,7 @@ func Run(ui common.UI, taskType string, conf common.ConfigGetter) error {
 	wgres.Wait()
 	ui.WorkEnd()
 
-	return nil
+	rw.Close()
+	rr := common.NewResultArchiveReader(rw.Path)
+	return reports.Run(ui, taskType, conf, rr)
 }

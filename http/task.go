@@ -99,6 +99,7 @@ func (t *Task) Work(rv *common.Result) error {
 	rv.Meta["Etag"] = resp.Header.Get("Etag")
 	rv.Meta["Cache-Control"] = resp.Header.Get("Cache-Control")
 	rv.Meta["Vary"] = resp.Header.Get("Vary")
+	rv.Meta["Content-Type"] = resp.Header.Get("Content-Type")
 
 	// TODO: make a /dev/null sink and just count the bytes.
 	body, err := ioutil.ReadAll(resp.Body)
