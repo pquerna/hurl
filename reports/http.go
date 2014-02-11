@@ -20,10 +20,13 @@ package reports
 import (
 	"fmt"
 	"github.com/pquerna/hurl/common"
+	"github.com/rcrowley/go-metrics"
+	"time"
 )
 
 func init() {
 	AddReporter(&HTTPResponseSize{})
+	AddReporter(&HTTPResponseTime{})
 }
 
 type HTTPReport struct{}
@@ -37,15 +40,38 @@ func (ht *HTTPReport) Interest(ui common.UI, taskType string) bool {
 
 type HTTPResponseSize struct {
 	HTTPReport
+	h metrics.Histogram
+}
+
+type HTTPResponseTime struct {
+	HTTPReport
+	h metrics.Histogram
 }
 
 func (hrs *HTTPResponseSize) ReadResults(rr *common.ResultArchiveReader) {
+	hrs.h = metrics.NewHistogram(metrics.NewExpDecaySample(1028, 0.015))
+
 	for rr.Scan() {
 		rv := rr.Entry()
-		fmt.Printf("ResponseSize: %v\n", rv.Metrics["BodyLength"])
+		hrs.h.Update(int64(rv.Metrics["BodyLength"]))
 	}
 }
 
 func (hrs *HTTPResponseSize) ConsoleOutput() {
-	fmt.Println("HTTPResponseSize!!!!")
+	fmt.Printf("Response Size Average: %02f\n", hrs.h.Mean())
+	fmt.Printf("Response Size Variance: %02f\n", hrs.h.Variance())
+}
+
+func (hrs *HTTPResponseTime) ReadResults(rr *common.ResultArchiveReader) {
+	hrs.h = metrics.NewHistogram(metrics.NewExpDecaySample(1028, 0.015))
+
+	for rr.Scan() {
+		rv := rr.Entry()
+		hrs.h.Update(int64(rv.Duration))
+	}
+}
+
+func (hrs *HTTPResponseTime) ConsoleOutput() {
+	fmt.Printf("Response Time Average: %v\n", time.Duration(hrs.h.Mean()))
+	fmt.Printf("Response Time Variance: %02f\n", hrs.h.Variance())
 }

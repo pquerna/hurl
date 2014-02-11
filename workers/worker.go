@@ -160,6 +160,7 @@ func Run(ui common.UI, taskType string, conf common.ConfigGetter) error {
 	ui.WorkEnd()
 
 	rw.Close()
+
 	rr := common.NewResultArchiveReader(rw.Path)
 	return reports.Run(ui, taskType, conf, rr)
 }

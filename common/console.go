@@ -39,11 +39,9 @@ func ConsoleRun(runner RunCmd, workerType string, config ConfigGetter, ui UI, cm
 		return
 	}
 
-	err = runner(ui, "http", config)
+	err = runner(ui, workerType, config)
 	if err != nil {
 		ConsoleErr(cmd, fmt.Sprintf("Error: %s", err))
 		return
 	}
-	// Get Reports.
-	// Render Reports.
 }

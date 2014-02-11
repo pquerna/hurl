@@ -10,6 +10,7 @@ deps:
 	go get -u github.com/spf13/cobra
 	go get -u github.com/dchest/uniuri
 	go get -u github.com/cheggaaa/pb
+	go get -u github.com/rcrowley/go-metrics
 
 fmt:
 	go fmt github.com/pquerna/hurl/...
