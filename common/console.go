@@ -23,7 +23,7 @@ import (
 	"os"
 )
 
-type RunCmd func(ui UI, taskType string, conf ConfigGetter) error
+type RunCmd func(ui UI, taskType string) error
 
 func ConsoleErr(cmd *cobra.Command, str string) {
 	cmd.Printf(str)
@@ -32,14 +32,16 @@ func ConsoleErr(cmd *cobra.Command, str string) {
 	os.Exit(1)
 }
 
-func ConsoleRun(runner RunCmd, workerType string, config ConfigGetter, ui UI, cmd *cobra.Command, args []string) {
-	err := config.Validate()
+func ConsoleRun(runner RunCmd, workerType string, ui UI, cmd *cobra.Command, args []string) {
+	conf := ui.ConfigGet()
+
+	err := conf.Validate()
 	if err != nil {
 		ConsoleErr(cmd, fmt.Sprintf("Error: %s", err))
 		return
 	}
 
-	err = runner(ui, workerType, config)
+	err = runner(ui, workerType)
 	if err != nil {
 		ConsoleErr(cmd, fmt.Sprintf("Error: %s", err))
 		return

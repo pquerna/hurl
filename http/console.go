@@ -49,5 +49,7 @@ func ConsoleRun(ui common.UI, cmd *cobra.Command, args []string) {
 
 	g_config.Url = args[0]
 
-	common.ConsoleRun(workers.Run, "http", &g_config, ui, cmd, args)
+	ui.ConfigSet(&g_config)
+
+	common.ConsoleRun(workers.Run, "http", ui, cmd, args)
 }

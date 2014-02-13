@@ -18,6 +18,7 @@
 package reports
 
 import (
+	"fmt"
 	"github.com/pquerna/hurl/common"
 )
 
@@ -34,6 +35,10 @@ func AddReporter(r Reporter) {
 		g_reporters = make([]Reporter, 0)
 	}
 	g_reporters = append(g_reporters, r)
+}
+
+func init() {
+	AddReporter(&overview{})
 }
 
 func Run(ui common.UI, taskType string, conf common.ConfigGetter, rr *common.ResultArchiveReader) error {
@@ -56,4 +61,29 @@ func Run(ui common.UI, taskType string, conf common.ConfigGetter, rr *common.Res
 	}
 
 	return nil
+}
+
+type overview struct {
+	ui common.UI
+}
+
+func (o *overview) Interest(ui common.UI, taskType string) bool {
+	o.ui = ui
+	return true
+}
+
+func (o *overview) ReadResults(rr *common.ResultArchiveReader) {
+}
+
+func (o *overview) ConsoleOutput() {
+	/*
+	   Concurrency Level:      1
+	   Time taken for tests:   0.010 seconds
+	   Complete requests:      1
+	   Failed requests:        0
+	   Write errors:           0
+	*/
+	conf := o.ui.ConfigGet()
+	bconf := conf.GetBasicConfig()
+	fmt.Printf("Concurrency Level: %d\n", bconf.Concurrency)
 }

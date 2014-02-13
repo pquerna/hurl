@@ -36,7 +36,8 @@ type Task struct {
 	URL       *url.URL
 }
 
-func NewTask(c common.ConfigGetter) workers.WorkerTask {
+func NewTask(ui common.UI) workers.WorkerTask {
+	c := ui.ConfigGet()
 	conf := c.GetHttpConfig()
 	if conf == nil {
 		panic("Invalid Configuration object for http/1 worker")

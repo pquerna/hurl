@@ -21,4 +21,6 @@ type UI interface {
 	WorkStart(numTodo int64)
 	WorkStatus(numDone int64)
 	WorkEnd()
+	ConfigSet(config ConfigGetter)
+	ConfigGet() ConfigGetter
 }

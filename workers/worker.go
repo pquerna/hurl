@@ -35,7 +35,7 @@ type Worker interface {
 	Halt() error
 }
 
-type newTask func(common.ConfigGetter) WorkerTask
+type newTask func(common.UI) WorkerTask
 
 var g_workers_tasks map[string]newTask
 
@@ -106,7 +106,7 @@ func resultHanlder(ui common.UI, wgres *sync.WaitGroup, resChan chan *common.Res
 	}
 }
 
-func Run(ui common.UI, taskType string, conf common.ConfigGetter) error {
+func Run(ui common.UI, taskType string) error {
 	//	if clusterConf != "" {
 	//		// TODO: add ClusterWorker
 	//		return nil, fmt.Errorf("TODO: Cluster support")
@@ -116,10 +116,11 @@ func Run(ui common.UI, taskType string, conf common.ConfigGetter) error {
 		return fmt.Errorf("unknown worker type: %s", taskType)
 	}
 
+	conf := ui.ConfigGet()
 	bconf := conf.GetBasicConfig()
 	workers := make([]Worker, bconf.Concurrency)
 	for index, _ := range workers {
-		workers[index] = &LocalWorker{task: wt(conf)}
+		workers[index] = &LocalWorker{task: wt(ui)}
 	}
 
 	ui.WorkStart(bconf.NumRequests)

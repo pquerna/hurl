@@ -19,10 +19,12 @@ package ui
 
 import (
 	"github.com/cheggaaa/pb"
+	"github.com/pquerna/hurl/common"
 )
 
 type ConsoleUI struct {
-	Bar *pb.ProgressBar
+	Bar    *pb.ProgressBar
+	Config common.ConfigGetter
 }
 
 func NewConsoleUI() *ConsoleUI {
@@ -42,4 +44,12 @@ func (cui *ConsoleUI) WorkStatus(numDone int64) {
 
 func (cui *ConsoleUI) WorkEnd() {
 	cui.Bar.FinishPrint("Complete.")
+}
+
+func (cui *ConsoleUI) ConfigSet(config common.ConfigGetter) {
+	cui.Config = config
+}
+
+func (cui *ConsoleUI) ConfigGet() common.ConfigGetter {
+	return cui.Config
 }
