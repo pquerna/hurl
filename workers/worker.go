@@ -64,9 +64,9 @@ func (lw *LocalWorker) runWorker(taskType string, id string) {
 			return
 		}
 		rv := common.NewResult(taskType, fmt.Sprintf("%s-%d", id, reqNum))
-		startTime := time.Now()
+		rv.Start = time.Now()
 		err := lw.task.Work(rv)
-		duration := time.Since(startTime)
+		duration := time.Since(rv.Start)
 		if err != nil {
 			// TODO: report this back to UI in a better way? Convert to ErrorResult?
 			panic(err)

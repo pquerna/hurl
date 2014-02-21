@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/pquerna/hurl/common"
 	"sort"
+	"time"
 )
 
 type Reporter interface {
@@ -84,7 +85,10 @@ func (br *BaseReport) Priority() int {
 
 type overview struct {
 	BaseReport
-	ui common.UI
+	ui               common.UI
+	timeTaken        time.Duration
+	completeRequests int64
+	failedRequests   int64
 }
 
 func (o *overview) Interest(ui common.UI, taskType string) bool {
@@ -93,17 +97,27 @@ func (o *overview) Interest(ui common.UI, taskType string) bool {
 }
 
 func (o *overview) ReadResults(rr *common.ResultArchiveReader) {
+	var first *common.Result = nil
+	var last *common.Result = nil
+	for rr.Scan() {
+		rv := rr.Entry()
+
+		if last == nil || rv.Start.After(last.Start) {
+			last = rv
+		}
+
+		if first == nil || rv.Start.Before(first.Start) {
+			first = rv
+		}
+
+	}
+
+	o.timeTaken = last.Start.Sub(first.Start)
 }
 
 func (o *overview) ConsoleOutput() {
-	/*
-	   Concurrency Level:      1
-	   Time taken for tests:   0.010 seconds
-	   Complete requests:      1
-	   Failed requests:        0
-	   Write errors:           0
-	*/
 	conf := o.ui.ConfigGet()
 	bconf := conf.GetBasicConfig()
 	fmt.Printf("Concurrency Level: %d\n", bconf.Concurrency)
+	fmt.Printf("Time Taken: %v\n", o.timeTaken)
 }

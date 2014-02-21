@@ -30,6 +30,7 @@ type Result struct {
 	Type     string
 	Id       string
 	Error    bool
+	Start    time.Time
 	Duration time.Duration
 	// TODO: should we just do a map[string]interface{}?
 	Meta    map[string]string
