@@ -67,6 +67,7 @@ func Run(ui common.UI, taskType string, conf common.ConfigGetter, rr *common.Res
 		rr.Reset()
 	}
 
+	fmt.Println()
 	for _, r := range reporters {
 		// TODO: other output types
 		r.ConsoleOutput()

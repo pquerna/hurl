@@ -61,13 +61,13 @@ func (hrs *HTTPResponseSize) ReadResults(rr *common.ResultArchiveReader) {
 
 func (hrs *HTTPResponseSize) ConsoleOutput() {
 	if hrs.h.Min() != hrs.h.Max() {
-		fmt.Printf("Response Size:\n")
-		fmt.Printf("				Mean		%v\n", hrs.h.Mean())
-		fmt.Printf("				90%%		%v\n", hrs.h.Percentile(0.90))
-		fmt.Printf("				95%%		%v\n", hrs.h.Percentile(0.95))
-		fmt.Printf("				99%%		%v\n", hrs.h.Percentile(0.99))
+		fmt.Printf("Document Length:\n")
+		fmt.Printf("				Mean		%v\n", int(hrs.h.Mean()))
+		fmt.Printf("				90%%		%v\n", int(hrs.h.Percentile(0.90)))
+		fmt.Printf("				95%%		%v\n", int(hrs.h.Percentile(0.95)))
+		fmt.Printf("				99%%		%v\n", int(hrs.h.Percentile(0.99)))
 	} else {
-		fmt.Printf("Response Size: %d\n", int(hrs.h.Max()))
+		fmt.Printf("Document Length: %d\n", int(hrs.h.Max()))
 	}
 }
 
@@ -81,6 +81,7 @@ func (hrs *HTTPResponseTime) ReadResults(rr *common.ResultArchiveReader) {
 }
 
 func (hrt *HTTPResponseTime) ConsoleOutput() {
+	fmt.Println()
 	fmt.Printf("Percentage of the requests served within a certain time (ms)\n")
 	fmt.Printf(" Min 		%v\n", time.Duration(hrt.h.Min()))
 	fmt.Printf("Mean		%v\n", time.Duration(hrt.h.Mean()))
