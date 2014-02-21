@@ -18,8 +18,12 @@
 package main
 
 import (
+	"fmt"
 	"github.com/pquerna/hurl/ui"
 	"github.com/spf13/cobra"
+	"os"
+	"os/signal"
+	"runtime/pprof"
 )
 
 func main() {
@@ -34,6 +38,28 @@ Complete documentation is available online at:
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.UsageFunc()(cmd)
 		},
+	}
+
+	cpuprofile := os.Getenv("CPUPROFILE")
+
+	if cpuprofile != "" {
+		f, err := os.Create(cpuprofile)
+		if err != nil {
+			fmt.Errorf("Error opening: %s, %v\n", cpuprofile, err)
+			panic(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+		go func() {
+			for sig := range c {
+				fmt.Printf("captured %v, stopping profiler and exiting..", sig)
+				pprof.StopCPUProfile()
+				os.Exit(1)
+			}
+		}()
 	}
 
 	subcmds := ui.ConsoleCommands()
