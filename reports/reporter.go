@@ -20,13 +20,21 @@ package reports
 import (
 	"fmt"
 	"github.com/pquerna/hurl/common"
+	"sort"
 )
 
 type Reporter interface {
+	Priority() int
 	Interest(ui common.UI, taskType string) bool
 	ReadResults(*common.ResultArchiveReader)
 	ConsoleOutput()
 }
+
+type ByPriority []Reporter
+
+func (a ByPriority) Len() int           { return len(a) }
+func (a ByPriority) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByPriority) Less(i, j int) bool { return a[i].Priority() < a[j].Priority() }
 
 var g_reporters []Reporter
 
@@ -38,7 +46,7 @@ func AddReporter(r Reporter) {
 }
 
 func init() {
-	AddReporter(&overview{})
+	AddReporter(&overview{BaseReport: BaseReport{ReportPriority: 0}, ui: nil})
 }
 
 func Run(ui common.UI, taskType string, conf common.ConfigGetter, rr *common.ResultArchiveReader) error {
@@ -50,6 +58,9 @@ func Run(ui common.UI, taskType string, conf common.ConfigGetter, rr *common.Res
 		}
 	}
 
+	sort.Sort(ByPriority(reporters))
+
+	// TODO: Feed requests to all reporters in parallell, only reading the file from disk once.
 	for _, r := range reporters {
 		r.ReadResults(rr)
 		rr.Reset()
@@ -63,7 +74,16 @@ func Run(ui common.UI, taskType string, conf common.ConfigGetter, rr *common.Res
 	return nil
 }
 
+type BaseReport struct {
+	ReportPriority int
+}
+
+func (br *BaseReport) Priority() int {
+	return br.ReportPriority
+}
+
 type overview struct {
+	BaseReport
 	ui common.UI
 }
 
