@@ -19,30 +19,15 @@ package common
 
 import (
 	"errors"
-	flag "github.com/spf13/pflag"
 	"net"
 	"net/url"
-	"strings"
 )
 
-type HttpConfig struct {
+type EtcdConfig struct {
 	BasicConfig
-	Method    string
-	Keepalive bool
 }
 
-func (conf *HttpConfig) AddFlags(flags *flag.FlagSet) {
-	conf.BasicConfig.AddFlags(flags)
-	flags.StringVarP(&conf.Method, "method", "m", "GET", "HTTP method to use.")
-	flags.BoolVarP(&conf.Keepalive, "keepalive", "k", true, "Enable HTTP Keepalive")
-}
-
-// Given a string of the form "host", "host:port", or "[ipv6::address]:port",
-// return true if the string includes a port.
-// TOOD(pquerna): move to netutils or such?
-func HasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
-
-func (conf *HttpConfig) Validate() error {
+func (conf *EtcdConfig) Validate() error {
 
 	err := conf.BasicConfig.Validate()
 
@@ -82,6 +67,6 @@ func (conf *HttpConfig) Validate() error {
 	return nil
 }
 
-func (conf *HttpConfig) GetHttpConfig() *HttpConfig {
+func (conf *EtcdConfig) GetEtcdConfig() *EtcdConfig {
 	return conf
 }

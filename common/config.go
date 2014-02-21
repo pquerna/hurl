@@ -26,6 +26,7 @@ type ConfigGetter interface {
 	// TODO(pquerna): This interface sucks. FIX ME.
 	GetBasicConfig() *BasicConfig
 	GetHttpConfig() *HttpConfig
+	GetEtcdConfig() *EtcdConfig
 	Validate() error
 }
 
@@ -60,5 +61,9 @@ func (conf *BasicConfig) GetBasicConfig() *BasicConfig {
 }
 
 func (conf *BasicConfig) GetHttpConfig() *HttpConfig {
+	return nil
+}
+
+func (conf *BasicConfig) GetEtcdConfig() *EtcdConfig {
 	return nil
 }

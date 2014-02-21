@@ -11,6 +11,7 @@ deps:
 	go get -u github.com/dchest/uniuri
 	go get -u github.com/cheggaaa/pb
 	go get -u github.com/rcrowley/go-metrics
+	go get -u github.com/coreos/go-etcd/etcd
 
 fmt:
 	go fmt github.com/pquerna/hurl/...

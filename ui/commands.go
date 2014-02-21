@@ -19,6 +19,7 @@ package ui
 
 import (
 	"fmt"
+	"github.com/pquerna/hurl/etcd"
 	"github.com/pquerna/hurl/http"
 	"github.com/spf13/cobra"
 )
@@ -36,6 +37,7 @@ func ConsoleCommands() []*cobra.Command {
 			},
 		},
 		http.ConsoleCommand(cui),
+		etcd.ConsoleCommand(cui),
 	}
 
 	return rv
