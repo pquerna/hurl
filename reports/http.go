@@ -58,8 +58,15 @@ func (hrs *HTTPResponseSize) ReadResults(rr *common.ResultArchiveReader) {
 }
 
 func (hrs *HTTPResponseSize) ConsoleOutput() {
-	fmt.Printf("Response Size Average: %02f\n", hrs.h.Mean())
-	fmt.Printf("Response Size Variance: %02f\n", hrs.h.Variance())
+	if hrs.h.Min() != hrs.h.Max() {
+		fmt.Printf("Response Size:\n")
+		fmt.Printf("				Mean		%v\n", hrs.h.Mean())
+		fmt.Printf("				90%%		%v\n", hrs.h.Percentile(0.90))
+		fmt.Printf("				95%%		%v\n", hrs.h.Percentile(0.95))
+		fmt.Printf("				99%%		%v\n", hrs.h.Percentile(0.99))
+	} else {
+		fmt.Printf("Response Size: %d\n", int(hrs.h.Max()))
+	}
 }
 
 func (hrs *HTTPResponseTime) ReadResults(rr *common.ResultArchiveReader) {
@@ -71,7 +78,12 @@ func (hrs *HTTPResponseTime) ReadResults(rr *common.ResultArchiveReader) {
 	}
 }
 
-func (hrs *HTTPResponseTime) ConsoleOutput() {
-	fmt.Printf("Response Time Average: %v\n", time.Duration(hrs.h.Mean()))
-	fmt.Printf("Response Time Variance: %02f\n", hrs.h.Variance())
+func (hrt *HTTPResponseTime) ConsoleOutput() {
+	fmt.Printf("Response Time:\n")
+	fmt.Printf("				Min 		%v\n", time.Duration(hrt.h.Min()))
+	fmt.Printf("				Mean		%v\n", time.Duration(hrt.h.Mean()))
+	fmt.Printf("				90%%		%v\n", time.Duration(hrt.h.Percentile(0.90)))
+	fmt.Printf("				95%%		%v\n", time.Duration(hrt.h.Percentile(0.95)))
+	fmt.Printf("				99%%		%v\n", time.Duration(hrt.h.Percentile(0.99)))
+	fmt.Printf("				Max 		%v\n", time.Duration(hrt.h.Max()))
 }
