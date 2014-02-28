@@ -22,6 +22,7 @@ import (
 	"github.com/ncw/swift"
 	"github.com/pquerna/hurl/common"
 	"github.com/pquerna/hurl/workers"
+	"sync"
 )
 
 func init() {
@@ -31,6 +32,95 @@ func init() {
 type Task struct {
 	conf *common.SwiftConfig
 	conn *swift.Connection
+}
+
+func (s *Task) Insert(table string, key string, values common.DatastoreObj) error {
+	data, err := common.DatastoreValuesToBytes(values)
+	if err != nil {
+		return err
+	}
+	err = s.conn.ObjectPutBytes(table, key, data, "")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Task) Read(table string, key string) (common.DatastoreObj, error) {
+	data, err := s.conn.ObjectGetBytes(table, key)
+
+	if err != nil {
+		return nil, err
+	}
+
+	v, err := common.DatastoreBytesToValues(data)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return v, nil
+}
+
+func (s *Task) Update(table string, key string, values common.DatastoreObj) error {
+	rv, err := s.Read(table, key)
+
+	if err != nil {
+		return err
+	}
+
+	for k, v := range values {
+		rv[k] = v
+	}
+
+	err = s.Insert(table, key, values)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Task) Scan(table string, startKey string, count int) ([]common.DatastoreObj, error) {
+	p := &swift.ObjectsOpts{
+		Limit:  count,
+		Marker: startKey,
+	}
+
+	objs, err := s.conn.ObjectNames(table, p)
+	if err != nil {
+		return nil, err
+	}
+	// TODO(pquerna): respect concurrency.? fml.
+	var wg sync.WaitGroup
+	var m sync.Mutex
+	rv := make([]common.DatastoreObj, len(objs))
+	errors := make([]error, 0)
+	for k, v := range objs {
+		wg.Add(1)
+		go func() {
+			v, err := s.Read(table, v)
+			m.Lock()
+			defer m.Unlock()
+			if err != nil {
+				errors = append(errors, err)
+			} else {
+				rv[k] = v
+			}
+		}()
+	}
+	wg.Wait()
+
+	if len(errors) != 0 {
+		// TODO: hrm. wish this was better?
+		return nil, errors[0]
+	}
+
+	return rv, nil
+}
+
+func (s *Task) Delete(table string, key string) error {
+	return s.conn.ObjectDelete(table, key)
 }
 
 func NewTask(ui common.UI) (workers.WorkerTask, error) {
@@ -57,6 +147,11 @@ func NewTask(ui common.UI) (workers.WorkerTask, error) {
 	return &Task{conf: conf, conn: &conn}, nil
 }
 
+func foo(ds common.Datastore) {
+	ds.Delete("foo", "bar")
+}
+
 func (t *Task) Work(rv *common.Result) error {
+	foo(t)
 	return nil
 }

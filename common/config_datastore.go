@@ -23,7 +23,8 @@ import (
 )
 
 type DatastoreConfig struct {
-	Method string
+	Method  string
+	Records int64
 }
 
 func (conf *DatastoreConfig) AddFlags(flags *flag.FlagSet) {
