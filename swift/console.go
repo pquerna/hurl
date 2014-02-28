@@ -15,40 +15,43 @@
  *
  */
 
-package etcd
+package swift
 
 import (
-	"github.com/coreos/go-etcd/etcd"
+	"fmt"
 	"github.com/pquerna/hurl/common"
 	"github.com/pquerna/hurl/workers"
+	"github.com/spf13/cobra"
 )
 
-func init() {
-	workers.Register("etcd", NewTask)
-}
+var g_config = common.SwiftConfig{}
 
-type Task struct {
-	conf   *common.EtcdConfig
-	client *etcd.Client
-}
-
-func NewTask(ui common.UI) (workers.WorkerTask, error) {
-	c := ui.ConfigGet()
-	conf := c.GetEtcdConfig()
-	if conf == nil {
-		panic("Invalid Configuration object for etcd worker")
+func ConsoleCommand(ui common.UI) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "swift",
+		Short: "swift bencharming client.",
+		Long:  ``,
+		Run: func(cmd *cobra.Command, args []string) {
+			ConsoleRun(ui, cmd, args)
+		},
 	}
 
-	client := etcd.NewClient([]string{conf.Url})
+	g_config.AddFlags(cmd.Flags())
 
-	return &Task{conf: conf, client: client}, nil
+	return cmd
 }
 
-func (t *Task) Work(rv *common.Result) error {
-	// TODO(pqeurna): add more config options!
-	_, err := t.client.Get("CHANGE_ME_LA_LA_LA/", false, false)
-	if err != nil {
-		return err
+func ConsoleRun(ui common.UI, cmd *cobra.Command, args []string) {
+	if len(args) != 1 {
+		common.ConsoleErr(cmd, fmt.Sprintf("Error: Expected 1 URL, got: %s", args))
+		return
 	}
-	return nil
+
+	// https://auth.api.rackspacecloud.com/v1.0
+
+	g_config.Url = args[0]
+
+	ui.ConfigSet(&g_config)
+
+	common.ConsoleRun(workers.Run, "swift", ui, cmd, args)
 }

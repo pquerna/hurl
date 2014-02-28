@@ -27,6 +27,7 @@ type ConfigGetter interface {
 	GetBasicConfig() *BasicConfig
 	GetHttpConfig() *HttpConfig
 	GetEtcdConfig() *EtcdConfig
+	GetSwiftConfig() *SwiftConfig
 	Validate() error
 }
 
@@ -65,5 +66,9 @@ func (conf *BasicConfig) GetHttpConfig() *HttpConfig {
 }
 
 func (conf *BasicConfig) GetEtcdConfig() *EtcdConfig {
+	return nil
+}
+
+func (conf *BasicConfig) GetSwiftConfig() *SwiftConfig {
 	return nil
 }

@@ -15,32 +15,26 @@
  *
  */
 
-package ui
+package common
 
 import (
-	"fmt"
-	"github.com/pquerna/hurl/etcd"
-	"github.com/pquerna/hurl/http"
-	"github.com/pquerna/hurl/swift"
-	"github.com/spf13/cobra"
+	"errors"
+	flag "github.com/spf13/pflag"
 )
 
-func ConsoleCommands() []*cobra.Command {
-	cui := NewConsoleUI()
+type DatastoreConfig struct {
+	Method string
+}
 
-	rv := []*cobra.Command{
-		&cobra.Command{
-			Use:   "version",
-			Short: "Print the version number of hurl",
-			Long:  `All software has versions. This is hurl's`,
-			Run: func(cmd *cobra.Command, args []string) {
-				fmt.Println("0.1.0-dev")
-			},
-		},
-		http.ConsoleCommand(cui),
-		etcd.ConsoleCommand(cui),
-		swift.ConsoleCommand(cui),
+func (conf *DatastoreConfig) AddFlags(flags *flag.FlagSet) {
+	flags.StringVarP(&conf.Method, "mode", "m", "load", "[load|run]")
+}
+
+func (conf *DatastoreConfig) Validate() error {
+
+	if conf.Method != "load" && conf.Method != "run" {
+		return errors.New("Method must be run or load.")
 	}
 
-	return rv
+	return nil
 }

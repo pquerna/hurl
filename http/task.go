@@ -36,7 +36,7 @@ type Task struct {
 	URL       *url.URL
 }
 
-func NewTask(ui common.UI) workers.WorkerTask {
+func NewTask(ui common.UI) (workers.WorkerTask, error) {
 	c := ui.ConfigGet()
 	conf := c.GetHttpConfig()
 	if conf == nil {
@@ -62,7 +62,7 @@ func NewTask(ui common.UI) workers.WorkerTask {
 		panic("Broken URL")
 	}
 
-	return &Task{conf: conf, transport: trans, URL: url}
+	return &Task{conf: conf, transport: trans, URL: url}, nil
 }
 
 func (t *Task) Request(requestId string) *nhttp.Request {

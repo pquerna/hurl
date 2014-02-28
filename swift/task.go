@@ -15,40 +15,48 @@
  *
  */
 
-package etcd
+package swift
 
 import (
-	"github.com/coreos/go-etcd/etcd"
+	"fmt"
+	"github.com/ncw/swift"
 	"github.com/pquerna/hurl/common"
 	"github.com/pquerna/hurl/workers"
 )
 
 func init() {
-	workers.Register("etcd", NewTask)
+	workers.Register("swift", NewTask)
 }
 
 type Task struct {
-	conf   *common.EtcdConfig
-	client *etcd.Client
+	conf *common.SwiftConfig
+	conn *swift.Connection
 }
 
 func NewTask(ui common.UI) (workers.WorkerTask, error) {
 	c := ui.ConfigGet()
-	conf := c.GetEtcdConfig()
+	conf := c.GetSwiftConfig()
 	if conf == nil {
-		panic("Invalid Configuration object for etcd worker")
+		panic("Invalid Configuration object for swift worker")
 	}
 
-	client := etcd.NewClient([]string{conf.Url})
+	conn := swift.Connection{
+		UserName: conf.Username,
+		ApiKey:   conf.ApiKey,
+		AuthUrl:  conf.AuthUrl,
+		// https://auth.api.rackspacecloud.com/v1.0
+		Region:    conf.Region,
+		UserAgent: fmt.Sprintf("hurl/1 http load tester; https://github.com/pquerna/hurl;  username=%s", conf.Username),
+	}
 
-	return &Task{conf: conf, client: client}, nil
+	err := conn.Authenticate()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Task{conf: conf, conn: &conn}, nil
 }
 
 func (t *Task) Work(rv *common.Result) error {
-	// TODO(pqeurna): add more config options!
-	_, err := t.client.Get("CHANGE_ME_LA_LA_LA/", false, false)
-	if err != nil {
-		return err
-	}
 	return nil
 }

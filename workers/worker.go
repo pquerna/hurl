@@ -35,7 +35,7 @@ type Worker interface {
 	Halt() error
 }
 
-type newTask func(common.UI) WorkerTask
+type newTask func(common.UI) (WorkerTask, error)
 
 var g_workers_tasks map[string]newTask
 
@@ -120,7 +120,11 @@ func Run(ui common.UI, taskType string) error {
 	bconf := conf.GetBasicConfig()
 	workers := make([]Worker, bconf.Concurrency)
 	for index, _ := range workers {
-		workers[index] = &LocalWorker{task: wt(ui)}
+		w, err := wt(ui)
+		if err != nil {
+			return err
+		}
+		workers[index] = &LocalWorker{task: w}
 	}
 
 	ui.WorkStart(bconf.NumRequests)
