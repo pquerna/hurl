@@ -113,6 +113,11 @@ func (o *overview) ReadResults(rr *common.ResultArchiveReader) {
 			first = rv
 		}
 
+		if rv.Error == true {
+			o.failedRequests++
+		} else {
+			o.completeRequests++
+		}
 	}
 
 	o.timeTaken = last.Start.Sub(first.Start)
@@ -121,8 +126,10 @@ func (o *overview) ReadResults(rr *common.ResultArchiveReader) {
 func (o *overview) ConsoleOutput() {
 	conf := o.ui.ConfigGet()
 	bconf := conf.GetBasicConfig()
-	fmt.Printf("Concurrency Level: %d\n", bconf.Concurrency)
-	fmt.Printf("Time Taken: %v\n", o.timeTaken)
+	fmt.Printf("Concurrency Level:	%d\n", bconf.Concurrency)
+	fmt.Printf("Complete Requests: 	%d\n", o.completeRequests)
+	fmt.Printf("Failed Requests: 	%d\n", o.failedRequests)
+	fmt.Printf("Time Taken: 		%v\n", o.timeTaken)
 }
 
 type ResponseTime struct {

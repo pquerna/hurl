@@ -68,11 +68,9 @@ func (lw *LocalWorker) runWorker(taskType string, id string) {
 		err := lw.task.Work(rv)
 		rv.Done()
 		if err != nil {
-			// TODO: report this back to UI in a better way? Convert to ErrorResult?
-			panic(err)
-			return
+			rv.Error = true
+			rv.Meta["error"] = err.Error()
 		}
-		// TODO: results storage
 		lw.resChan <- rv
 	}
 }

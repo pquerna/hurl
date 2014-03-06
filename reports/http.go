@@ -60,6 +60,6 @@ func (hrs *HTTPResponseSize) ConsoleOutput() {
 		fmt.Printf("				95%%		%v\n", int(hrs.h.Percentile(0.95)))
 		fmt.Printf("				99%%		%v\n", int(hrs.h.Percentile(0.99)))
 	} else {
-		fmt.Printf("Document Length: %d\n", int(hrs.h.Max()))
+		fmt.Printf("Document Length:	%d\n", int(hrs.h.Max()))
 	}
 }
