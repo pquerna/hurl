@@ -43,13 +43,13 @@ func ConsoleCommand(ui common.UI) *cobra.Command {
 
 func ConsoleRun(ui common.UI, cmd *cobra.Command, args []string) {
 	if len(args) != 1 {
-		common.ConsoleErr(cmd, fmt.Sprintf("Error: Expected 1 URL, got: %s", args))
+		common.ConsoleErr(cmd, fmt.Sprintf("Error: Missing mode: %s", args))
 		return
 	}
 
 	// https://auth.api.rackspacecloud.com/v1.0
 
-	g_config.Url = args[0]
+	g_config.Mode = args[0]
 
 	ui.ConfigSet(&g_config)
 

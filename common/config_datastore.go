@@ -23,19 +23,38 @@ import (
 )
 
 type DatastoreConfig struct {
-	Method  string
-	Records int64
+	Mode        string
+	Records     int64
+	AtRecord    int64
+	FieldCount  int
+	FieldSize   int
+	ReadRatio   float64
+	UpdateRatio float64
+	// TODO(pquerna): m
+	//	InsertRatio float32
+	//	ScanRatio   float32
 }
 
 func (conf *DatastoreConfig) AddFlags(flags *flag.FlagSet) {
-	flags.StringVarP(&conf.Method, "mode", "m", "load", "[load|run]")
+	flags.StringVarP(&conf.Mode, "mode", "m", "load", "[load|run]")
+	flags.Int64VarP(&conf.Records, "records", "", 1000000, "Number of Records.")
+	flags.IntVar(&conf.FieldCount, "fieldcount", 10, "Number of Fields.")
+	flags.IntVar(&conf.FieldSize, "fieldsize", 100, "Size of Fields.")
+	flags.Float64Var(&conf.ReadRatio, "readratio", 0.95, "Ratio of Reads.")
+	flags.Float64Var(&conf.UpdateRatio, "updateratio", 0.05, "Ratio of Updates.")
+	//	flags.Float64Var(&conf.InsertRatio, "readratio", 0.0, "Ratio of Inserts.")
+	//	flags.Float64Var(&conf.ScanRatio, "readratio", 0.0, "Ratio of Scan operations.")
 }
 
 func (conf *DatastoreConfig) Validate() error {
 
-	if conf.Method != "load" && conf.Method != "run" {
+	if conf.Mode != "load" && conf.Mode != "run" {
 		return errors.New("Method must be run or load.")
 	}
 
 	return nil
+}
+
+func (conf *DatastoreConfig) GetDatastoreConfig() *DatastoreConfig {
+	return conf
 }

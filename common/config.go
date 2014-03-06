@@ -23,8 +23,9 @@ import (
 )
 
 type ConfigGetter interface {
-	// TODO(pquerna): This interface sucks. FIX ME.
+	// TODO(pquerna): This interface sucks. IT REALLY SUCKS. FIX ME.
 	GetBasicConfig() *BasicConfig
+	GetDatastoreConfig() *DatastoreConfig
 	GetHttpConfig() *HttpConfig
 	GetEtcdConfig() *EtcdConfig
 	GetSwiftConfig() *SwiftConfig
@@ -70,5 +71,9 @@ func (conf *BasicConfig) GetEtcdConfig() *EtcdConfig {
 }
 
 func (conf *BasicConfig) GetSwiftConfig() *SwiftConfig {
+	return nil
+}
+
+func (conf *BasicConfig) GetDatastoreConfig() *DatastoreConfig {
 	return nil
 }

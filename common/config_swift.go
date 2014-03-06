@@ -36,7 +36,7 @@ func (conf *SwiftConfig) AddFlags(flags *flag.FlagSet) {
 	conf.DatastoreConfig.AddFlags(flags)
 	flags.StringVarP(&conf.Username, "username", "u", "", "Username")
 	flags.StringVarP(&conf.ApiKey, "apikey", "k", "", "API Key")
-	flags.StringVarP(&conf.AuthUrl, "authurl", "a", "https://auth.api.rackspacecloud.com/v1.0", "Authenication URL")
+	flags.StringVarP(&conf.AuthUrl, "authurl", "a", "https://identity.api.rackspacecloud.com/v2.0", "Authenication URL")
 	flags.StringVarP(&conf.Region, "region", "r", "IAD", "Target Region")
 }
 
@@ -69,6 +69,10 @@ func (conf *SwiftConfig) Validate() error {
 	return nil
 }
 
-func (conf *SwiftConfig) GetSwitftConfig() *SwiftConfig {
+func (conf *SwiftConfig) GetSwiftConfig() *SwiftConfig {
 	return conf
+}
+
+func (conf *SwiftConfig) GetDatastoreConfig() *DatastoreConfig {
+	return &conf.DatastoreConfig
 }

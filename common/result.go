@@ -37,6 +37,14 @@ type Result struct {
 	Metrics map[string]float64
 }
 
+// Calling Done() multiple times is OK, some Tasks will call it before
+// they return, because they spend significant time extracting metadata.
+func (r *Result) Done() {
+	if r.Duration == 0 {
+		r.Duration = time.Since(r.Start)
+	}
+}
+
 func NewResult(taskType string, id string) *Result {
 	r := &Result{Id: id, Type: taskType}
 	r.Meta = make(map[string]string)

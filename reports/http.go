@@ -21,12 +21,10 @@ import (
 	"fmt"
 	"github.com/pquerna/hurl/common"
 	"github.com/rcrowley/go-metrics"
-	"time"
 )
 
 func init() {
 	AddReporter(&HTTPResponseSize{HTTPReport{BaseReport{ReportPriority: 99}}, nil})
-	AddReporter(&HTTPResponseTime{HTTPReport{BaseReport{ReportPriority: 100}}, nil})
 }
 
 type HTTPReport struct {
@@ -41,11 +39,6 @@ func (ht *HTTPReport) Interest(ui common.UI, taskType string) bool {
 }
 
 type HTTPResponseSize struct {
-	HTTPReport
-	h metrics.Histogram
-}
-
-type HTTPResponseTime struct {
 	HTTPReport
 	h metrics.Histogram
 }
@@ -69,29 +62,4 @@ func (hrs *HTTPResponseSize) ConsoleOutput() {
 	} else {
 		fmt.Printf("Document Length: %d\n", int(hrs.h.Max()))
 	}
-}
-
-func (hrs *HTTPResponseTime) ReadResults(rr *common.ResultArchiveReader) {
-	hrs.h = metrics.NewHistogram(metrics.NewExpDecaySample(1028, 0.015))
-
-	for rr.Scan() {
-		rv := rr.Entry()
-		hrs.h.Update(int64(rv.Duration))
-	}
-}
-
-func (hrt *HTTPResponseTime) ConsoleOutput() {
-	fmt.Println()
-	fmt.Printf("Percentage of the requests served within a certain time (ms)\n")
-	fmt.Printf(" Min 		%v\n", time.Duration(hrt.h.Min()))
-	fmt.Printf("Mean		%v\n", time.Duration(hrt.h.Mean()))
-	fmt.Printf(" 50%%		%v\n", time.Duration(hrt.h.Percentile(0.50)))
-	fmt.Printf(" 66%%		%v\n", time.Duration(hrt.h.Percentile(0.66)))
-	fmt.Printf(" 75%%		%v\n", time.Duration(hrt.h.Percentile(0.75)))
-	fmt.Printf(" 80%%		%v\n", time.Duration(hrt.h.Percentile(0.80)))
-	fmt.Printf(" 90%%		%v\n", time.Duration(hrt.h.Percentile(0.90)))
-	fmt.Printf(" 95%%		%v\n", time.Duration(hrt.h.Percentile(0.95)))
-	fmt.Printf(" 98%%		%v\n", time.Duration(hrt.h.Percentile(0.98)))
-	fmt.Printf(" 99%%		%v\n", time.Duration(hrt.h.Percentile(0.99)))
-	fmt.Printf("100%% 		%v (longest request)\n", time.Duration(hrt.h.Max()))
 }

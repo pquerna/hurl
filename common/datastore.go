@@ -20,10 +20,15 @@ package common
 import (
 	"bytes"
 	"encoding/gob"
+	"fmt"
+	"math/rand"
+	"sync/atomic"
 )
 
 type DatastoreObj map[string]string
+
 type Datastore interface {
+	Config() ConfigGetter
 	Insert(table string, key string, value DatastoreObj) error
 	Read(table string, key string) (DatastoreObj, error)
 	Update(table string, key string, value DatastoreObj) error
@@ -54,4 +59,36 @@ func DatastoreBytesToValues(input []byte) (map[string]string, error) {
 	}
 
 	return rv, nil
+}
+
+func DatastoreLoad(conf *DatastoreConfig, ds Datastore, rv *Result) error {
+	rec := atomic.AddInt64(&conf.AtRecord, 1)
+	val := make(map[string]string, 0)
+	return ds.Insert("users", fmt.Sprintf("%v", rec), val)
+}
+
+func random(min float64, max float64) float64 {
+	return rand.Float64()*(max-min) + min
+}
+
+func DatastoreRun(conf *DatastoreConfig, ds Datastore, rv *Result) error {
+	// TODO: fix for insert/scan/blah
+	opr := random(0.0, conf.ReadRatio+conf.UpdateRatio)
+	if opr >= conf.ReadRatio {
+
+	}
+	return nil
+}
+
+func DatastoreWork(ds Datastore, rv *Result) error {
+	conf := ds.Config().GetDatastoreConfig()
+	switch conf.Mode {
+	case "load":
+		return DatastoreLoad(conf, ds, rv)
+	case "run":
+		return DatastoreRun(conf, ds, rv)
+	}
+
+	panic("unreached")
+	return nil
 }

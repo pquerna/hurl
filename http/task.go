@@ -92,6 +92,14 @@ func (t *Task) Work(rv *common.Result) error {
 	}
 	defer resp.Body.Close()
 
+	// TODO: make a /dev/null sink and just count the bytes.
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	rv.Done()
+
 	// TOOD: extract any interesting resp.Headers?
 	rv.Meta["Scheme"] = t.URL.Scheme
 	rv.Meta["StatusCode"] = strconv.Itoa(resp.StatusCode)
@@ -101,13 +109,7 @@ func (t *Task) Work(rv *common.Result) error {
 	rv.Meta["Cache-Control"] = resp.Header.Get("Cache-Control")
 	rv.Meta["Vary"] = resp.Header.Get("Vary")
 	rv.Meta["Content-Type"] = resp.Header.Get("Content-Type")
-
-	// TODO: make a /dev/null sink and just count the bytes.
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
 	rv.Metrics["BodyLength"] = float64(len(body))
+
 	return nil
 }

@@ -20,6 +20,7 @@ package reports
 import (
 	"fmt"
 	"github.com/pquerna/hurl/common"
+	"github.com/rcrowley/go-metrics"
 	"sort"
 	"time"
 )
@@ -48,6 +49,7 @@ func AddReporter(r Reporter) {
 
 func init() {
 	AddReporter(&overview{BaseReport: BaseReport{ReportPriority: 0}, ui: nil})
+	AddReporter(&ResponseTime{BaseReport{ReportPriority: 100}, nil})
 }
 
 func Run(ui common.UI, taskType string, conf common.ConfigGetter, rr *common.ResultArchiveReader) error {
@@ -121,4 +123,38 @@ func (o *overview) ConsoleOutput() {
 	bconf := conf.GetBasicConfig()
 	fmt.Printf("Concurrency Level: %d\n", bconf.Concurrency)
 	fmt.Printf("Time Taken: %v\n", o.timeTaken)
+}
+
+type ResponseTime struct {
+	BaseReport
+	h metrics.Histogram
+}
+
+func (hrs *ResponseTime) Interest(ui common.UI, taskType string) bool {
+	return true
+}
+
+func (hrs *ResponseTime) ReadResults(rr *common.ResultArchiveReader) {
+	hrs.h = metrics.NewHistogram(metrics.NewExpDecaySample(1028, 0.015))
+
+	for rr.Scan() {
+		rv := rr.Entry()
+		hrs.h.Update(int64(rv.Duration))
+	}
+}
+
+func (hrt *ResponseTime) ConsoleOutput() {
+	fmt.Println()
+	fmt.Printf("Percentage of the requests served within a certain time (ms)\n")
+	fmt.Printf(" Min 		%v\n", time.Duration(hrt.h.Min()))
+	fmt.Printf("Mean		%v\n", time.Duration(hrt.h.Mean()))
+	fmt.Printf(" 50%%		%v\n", time.Duration(hrt.h.Percentile(0.50)))
+	fmt.Printf(" 66%%		%v\n", time.Duration(hrt.h.Percentile(0.66)))
+	fmt.Printf(" 75%%		%v\n", time.Duration(hrt.h.Percentile(0.75)))
+	fmt.Printf(" 80%%		%v\n", time.Duration(hrt.h.Percentile(0.80)))
+	fmt.Printf(" 90%%		%v\n", time.Duration(hrt.h.Percentile(0.90)))
+	fmt.Printf(" 95%%		%v\n", time.Duration(hrt.h.Percentile(0.95)))
+	fmt.Printf(" 98%%		%v\n", time.Duration(hrt.h.Percentile(0.98)))
+	fmt.Printf(" 99%%		%v\n", time.Duration(hrt.h.Percentile(0.99)))
+	fmt.Printf("100%% 		%v (longest request)\n", time.Duration(hrt.h.Max()))
 }

@@ -34,13 +34,20 @@ type Task struct {
 	conn *swift.Connection
 }
 
+func (s *Task) Config() common.ConfigGetter {
+	return s.conf
+}
+
 func (s *Task) Insert(table string, key string, values common.DatastoreObj) error {
 	data, err := common.DatastoreValuesToBytes(values)
 	if err != nil {
+		fmt.Printf("DatastoreValuesToBytes: %v\n", err)
 		return err
 	}
+
 	err = s.conn.ObjectPutBytes(table, key, data, "")
 	if err != nil {
+		fmt.Printf("ObjectPutBytes: %v: %v:%v->%v\n", err, table, key, data)
 		return err
 	}
 	return nil
@@ -92,6 +99,7 @@ func (s *Task) Scan(table string, startKey string, count int) ([]common.Datastor
 		return nil, err
 	}
 	// TODO(pquerna): respect concurrency.? fml.
+	// TODO(pquerna): Auth Token expiration isn't go-routine safe in swift client.
 	var wg sync.WaitGroup
 	var m sync.Mutex
 	rv := make([]common.DatastoreObj, len(objs))
@@ -123,6 +131,9 @@ func (s *Task) Delete(table string, key string) error {
 	return s.conn.ObjectDelete(table, key)
 }
 
+var authTokenCache string = ""
+var storageUrlCache string = ""
+
 func NewTask(ui common.UI) (workers.WorkerTask, error) {
 	c := ui.ConfigGet()
 	conf := c.GetSwiftConfig()
@@ -139,19 +150,23 @@ func NewTask(ui common.UI) (workers.WorkerTask, error) {
 		UserAgent: fmt.Sprintf("hurl/1 http load tester; https://github.com/pquerna/hurl;  username=%s", conf.Username),
 	}
 
-	err := conn.Authenticate()
-	if err != nil {
-		return nil, err
+	if authTokenCache != "" && storageUrlCache != "" {
+		conn.AuthToken = authTokenCache
+		conn.StorageUrl = storageUrlCache
+	} else {
+		err := conn.Authenticate()
+		if err != nil {
+			return nil, err
+		}
+		authTokenCache = conn.AuthToken
+		storageUrlCache = conn.StorageUrl
 	}
 
-	return &Task{conf: conf, conn: &conn}, nil
-}
-
-func foo(ds common.Datastore) {
-	ds.Delete("foo", "bar")
+	return &Task{
+		conf: conf,
+		conn: &conn}, nil
 }
 
 func (t *Task) Work(rv *common.Result) error {
-	foo(t)
-	return nil
+	return common.DatastoreWork(t, rv)
 }
