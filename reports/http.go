@@ -24,32 +24,29 @@ import (
 )
 
 func init() {
-	AddReporter(&HTTPResponseSize{HTTPReport{BaseReport{ReportPriority: 99}}, nil})
-}
-
-type HTTPReport struct {
-	BaseReport
-}
-
-func (ht *HTTPReport) Interest(ui common.UI, taskType string) bool {
-	if taskType == "http" {
-		return true
-	}
-	return false
+	AddReporter(&HTTPResponseSize{BaseReport{ReportPriority: 99}, nil})
 }
 
 type HTTPResponseSize struct {
-	HTTPReport
+	BaseReport
 	h metrics.Histogram
 }
 
-func (hrs *HTTPResponseSize) ReadResults(rr *common.ResultArchiveReader) {
-	hrs.h = metrics.NewHistogram(metrics.NewExpDecaySample(1028, 0.015))
-
-	for rr.Scan() {
-		rv := rr.Entry()
-		hrs.h.Update(int64(rv.Metrics["BodyLength"]))
+func (hrs *HTTPResponseSize) Interest(ui common.UI, taskType string) bool {
+	if taskType == "http" {
+		hrs.h = metrics.NewHistogram(metrics.NewExpDecaySample(1028, 0.015))
+		return true
 	}
+
+	return false
+}
+
+func (hrs *HTTPResponseSize) Finished() {
+
+}
+
+func (hrs *HTTPResponseSize) ReadResult(rv *common.Result) {
+	hrs.h.Update(int64(rv.Metrics["BodyLength"]))
 }
 
 func (hrs *HTTPResponseSize) ConsoleOutput() {

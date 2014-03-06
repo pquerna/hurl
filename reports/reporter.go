@@ -28,7 +28,8 @@ import (
 type Reporter interface {
 	Priority() int
 	Interest(ui common.UI, taskType string) bool
-	ReadResults(*common.ResultArchiveReader)
+	ReadResult(*common.Result)
+	Finished()
 	ConsoleOutput()
 }
 
@@ -63,10 +64,15 @@ func Run(ui common.UI, taskType string, conf common.ConfigGetter, rr *common.Res
 
 	sort.Sort(ByPriority(reporters))
 
-	// TODO: Feed requests to all reporters in parallell, only reading the file from disk once.
+	for rr.Scan() {
+		rv := rr.Entry()
+		for _, r := range reporters {
+			r.ReadResult(rv)
+		}
+	}
+
 	for _, r := range reporters {
-		r.ReadResults(rr)
-		rr.Reset()
+		r.Finished()
 	}
 
 	fmt.Println()
@@ -92,6 +98,8 @@ type overview struct {
 	timeTaken        time.Duration
 	completeRequests int64
 	failedRequests   int64
+	first            *common.Result
+	last             *common.Result
 }
 
 func (o *overview) Interest(ui common.UI, taskType string) bool {
@@ -99,29 +107,25 @@ func (o *overview) Interest(ui common.UI, taskType string) bool {
 	return true
 }
 
-func (o *overview) ReadResults(rr *common.ResultArchiveReader) {
-	var first *common.Result = nil
-	var last *common.Result = nil
-	for rr.Scan() {
-		rv := rr.Entry()
+func (o *overview) Finished() {
+	o.timeTaken = o.last.Start.Sub(o.first.Start)
+}
 
-		if last == nil || rv.Start.After(last.Start) {
-			last = rv
-		}
-
-		if first == nil || rv.Start.Before(first.Start) {
-			first = rv
-		}
-
-		if rv.Error == true {
-			o.failedRequests++
-			fmt.Printf("ERROR: %s\n", rv.Meta["error"])
-		} else {
-			o.completeRequests++
-		}
+func (o *overview) ReadResult(rv *common.Result) {
+	if o.last == nil || rv.Start.After(o.last.Start) {
+		o.last = rv
 	}
 
-	o.timeTaken = last.Start.Sub(first.Start)
+	if o.first == nil || rv.Start.Before(o.first.Start) {
+		o.first = rv
+	}
+
+	if rv.Error == true {
+		o.failedRequests++
+		fmt.Printf("ERROR: %s\n", rv.Meta["error"])
+	} else {
+		o.completeRequests++
+	}
 }
 
 func (o *overview) ConsoleOutput() {
@@ -141,16 +145,17 @@ type ResponseTime struct {
 }
 
 func (hrs *ResponseTime) Interest(ui common.UI, taskType string) bool {
+	hrs.h = metrics.NewHistogram(metrics.NewExpDecaySample(1028, 0.015))
+
 	return true
 }
 
-func (hrs *ResponseTime) ReadResults(rr *common.ResultArchiveReader) {
-	hrs.h = metrics.NewHistogram(metrics.NewExpDecaySample(1028, 0.015))
+func (hrs *ResponseTime) Finished() {
 
-	for rr.Scan() {
-		rv := rr.Entry()
-		hrs.h.Update(int64(rv.Duration))
-	}
+}
+
+func (hrs *ResponseTime) ReadResult(rv *common.Result) {
+	hrs.h.Update(int64(rv.Duration))
 }
 
 func (hrt *ResponseTime) ConsoleOutput() {
