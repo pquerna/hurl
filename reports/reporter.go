@@ -115,6 +115,7 @@ func (o *overview) ReadResults(rr *common.ResultArchiveReader) {
 
 		if rv.Error == true {
 			o.failedRequests++
+			fmt.Printf("ERROR: %s\n", rv.Meta["error"])
 		} else {
 			o.completeRequests++
 		}
