@@ -1,5 +1,3 @@
-# STATUS: WIP, nothing works, this is README driven development.
-
 # hurl, a tool to hurl traffic at URLs
 
 `hurl` provides a suite of network benchmarking and result analytic tools.
@@ -14,37 +12,29 @@ You can start using `hurl` with commands similar to Apache Bench `ab`, but as yo
 
 `hurl http` supports most of the basic arguments from Apache Bench.  A simple example:
 
-    hurl http -c 100 -n 10000 http://127.0.0.1/
+```sh
+# hurl http -c 100 -n 10000 http://127.0.0.1/
+
+Concurrency Level: 100
+Time Taken: 867.486578ms
+Document Length: 612
+
+Percentage of the requests served within a certain time (ms)
+ Min    2.318614ms
+Mean    7.947689ms
+ 50%    6.629707ms
+ 66%    7.162523ms
+ 75%    7.548412ms
+ 80%    7.784365ms
+ 90%    8.542364ms
+ 95%    10.286918ms
+ 98%    13.771837ms
+ 99%    16.87096ms
+100%    1.083432462s (longest request)
+
+```
 
 Would run 100 concurrent clients until 10,000 requests have been completed against `http://127.0.0.1/`.
-
-`hurl` also has support for customized test plans.  Test plans are defined in a JSON file, for example
-the previous example could be written as:
-
-```json
-    {
-      name: '100 client test',
-      tasks: [
-        {'url': 'http://127.0.0.1/',
-         'count': 10000,
-         'concurrency': 100}
-      ]
-    }
-```
-
-And then ran as `hurl http --config 100clients.json`.   While this example is more verbose, the JSON format
-enables building complicated and large test plans hitting multiple URLs, or ramping up traffic.
-
-## Scaling Out
-
-`hurl` also provides a daemon mode, which can be ran across many hosts to generate distributed load from many machines.
-
-```sh
-hurl daemon -p 8000 -s secret &
-hurl daemon -p 8001 -s secret &
-hurl http -cluster :8000,:8001 -s secret -c 100 -n 10000 http://127.0.0.1/
-```
-
 
 ## Not just HTTP!
 
@@ -52,14 +42,20 @@ hurl http -cluster :8000,:8001 -s secret -c 100 -n 10000 http://127.0.0.1/
 
 ```sh
 
-hurl mongo -c 100 -n 100000 -rwmix 80 mongodb://10.0.0.1/mydatabase
+hurl swift -u ${SWIFT_USER} -k ${SWIFT_APIKEY} load
 ```
 
-The scaling out abilities also work with the non-HTTP smasher too.
-
-Available "smashers":
+## Available Tasks:
 
 * `http`
 * `etcd`
-* `mongo`
+* `swift`
+
+## Improving, adding features, taking hurl new directions!
+
+Please [open issues in Github]() for ideas, bugs, and general thoughts.  Pull requests are of course preferred :)
+
+## License
+
+`hurl` is licensed under the [Apache License, Version 2.0](./LICENSE)
 
