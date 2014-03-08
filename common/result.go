@@ -84,7 +84,13 @@ func NewResultArchiveWriter() *ResultArchiveWriter {
 	if err != nil {
 		panic(err)
 	}
-	gwriter := gzip.NewWriter(tfile)
+
+	gwriter, err := gzip.NewWriterLevel(tfile, gzip.BestSpeed)
+
+	if err != nil {
+		panic(err)
+	}
+
 	return &ResultArchiveWriter{
 		Path:    tfile.Name(),
 		fwriter: tfile,
