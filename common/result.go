@@ -19,6 +19,7 @@ package common
 
 import (
 	"bufio"
+	"bytes"
 	"compress/gzip"
 	"encoding/json"
 	"io/ioutil"
@@ -45,6 +46,53 @@ func (r *Result) Done() {
 	if r.Duration == 0 {
 		r.Duration = time.Since(r.Start)
 	}
+}
+
+func (r *Result) MarshalJSON() ([]byte, error) {
+
+	errb := `false`
+	if r.Error {
+		errb = `true`
+	}
+
+	start, err := json.Marshal(r.Start)
+	if err != nil {
+		return nil, err
+	}
+
+	duration, err := json.Marshal(r.Duration)
+	if err != nil {
+		return nil, err
+	}
+
+	meta, err := json.Marshal(r.Meta)
+	if err != nil {
+		return nil, err
+	}
+
+	metrics, err := json.Marshal(r.Metrics)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: benchmark
+	return bytes.Join(
+		[][]byte{
+			[]byte(`{`),
+			[]byte(`"Type":"` + r.Type + `"`),
+			[]byte(`,"Id":"` + r.Id + `"`),
+			[]byte(`,"Error":"` + errb + `"`),
+			[]byte(`,"Start":`),
+			start,
+			[]byte(`,"Duration":`),
+			duration,
+			[]byte(`,"Meta":`),
+			meta,
+			[]byte(`,"Metrics":`),
+			metrics,
+			[]byte(`}`),
+		},
+		[]byte{}), nil
 }
 
 func NewResult(taskType string, id string) *Result {
