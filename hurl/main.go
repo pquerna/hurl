@@ -23,10 +23,15 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"os/signal"
+	"runtime"
 	"runtime/pprof"
 )
 
 func main() {
+
+	if os.Getenv("GOMAXPROCS") == "" {
+		runtime.GOMAXPROCS(runtime.NumCPU())
+	}
 
 	cmd := &cobra.Command{
 		Use:   "hurl",
