@@ -108,7 +108,7 @@ type ResultArchiveWriter struct {
 }
 
 func (raw *ResultArchiveWriter) Write(rv *Result) error {
-	b, err := json.Marshal(rv)
+	b, err := rv.MarshalJSON()
 	if err != nil {
 		return err
 	}
