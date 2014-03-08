@@ -24,6 +24,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -55,15 +56,12 @@ func (r *Result) MarshalJSON() ([]byte, error) {
 		errb = `true`
 	}
 
-	start, err := json.Marshal(r.Start)
+	start, err := r.Start.MarshalJSON()
 	if err != nil {
 		return nil, err
 	}
 
-	duration, err := json.Marshal(r.Duration)
-	if err != nil {
-		return nil, err
-	}
+	duration := strconv.AppendInt([]byte{}, int64(r.Duration), 10)
 
 	meta, err := json.Marshal(r.Meta)
 	if err != nil {
