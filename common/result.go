@@ -26,6 +26,8 @@ import (
 	"time"
 )
 
+var bufWriteSize = 64 * 1024
+
 type Result struct {
 	Type     string
 	Id       string
@@ -95,7 +97,7 @@ func NewResultArchiveWriter() *ResultArchiveWriter {
 		Path:    tfile.Name(),
 		fwriter: tfile,
 		gwriter: gwriter,
-		writer:  bufio.NewWriter(gwriter),
+		writer:  bufio.NewWriterSize(gwriter, bufWriteSize),
 	}
 }
 
