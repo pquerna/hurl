@@ -19,6 +19,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/pquerna/hurl/common"
 	"github.com/pquerna/hurl/ui"
 	"github.com/spf13/cobra"
 	"os"
@@ -73,5 +74,8 @@ Complete documentation is available online at:
 		cmd.AddCommand(c)
 	}
 
-	cmd.Execute()
+	err := cmd.Execute()
+	if err != nil {
+		common.ConsoleErr(cmd, fmt.Sprintf("Error: %s", err))
+	}
 }
