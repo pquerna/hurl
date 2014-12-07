@@ -3,7 +3,7 @@ all: test install
 	@echo "Done"
 
 install:
-	go install github.com/pquerna/hurl/hurl
+	go install github.com/pquerna/hurl
 
 deps:
 	go get -u launchpad.net/gocheck
